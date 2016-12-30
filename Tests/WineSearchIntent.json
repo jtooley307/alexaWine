@@ -1,0 +1,34 @@
+{
+  "session": {
+    "sessionId": "SessionId.6133d70e-c527-4b5d-b40a-769fef36cd29",
+    "application": {
+      "applicationId": "amzn1.ask.skill.db86c0db-cfb9-426f-99c5-dfc8406bd56f"
+    },
+    "attributes": {
+      "STATE": "_SEARCHMODE"
+    },
+    "user": {
+      "userId": "amzn1.ask.account.AFENCV5NIXITVY5A5NNW2CVNH7VWABSEMEWVQDLKGMQKCCQUSRPQ3JDENR5JPCXURIIG5BBDC5FSK2DEJFELWKHI7VHEITW4Q633ONA2LCIANIMF3MB7QRKM6ASV2PQHMJRBXU72UM56ORQU73C6L64BDTSBYJEP47XJY74D46FZDVZQXGBFNK557I6WDQ2UZ4VIDHCSHYMV7JI"
+    },
+    "new": false
+  },
+  "request": {
+    "type": "IntentRequest",
+    "requestId": "EdwRequestId.bb4d4947-b1aa-49b1-bcb1-8bc93bdcf273",
+    "locale": "en-US",
+    "timestamp": "2016-12-30T02:09:53Z",
+    "intent": {
+      "name": "wineSearchIntent",
+      "slots": {
+        "Wine": {
+          "name": "Wine",
+          "value": "Mondavi"
+        },
+        "Date": {
+          "name": "Date"
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

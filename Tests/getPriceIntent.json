@@ -1,0 +1,31 @@
+{
+  "session": {
+    "sessionId": "SessionId.5884f29b-1bda-4fc3-98bb-5ffcd6bc9a46",
+    "application": {
+      "applicationId": "amzn1.ask.skill.db86c0db-cfb9-426f-99c5-dfc8406bd56f"
+    },
+    "attributes": {
+      "STATE": "_TOPFIVE"
+    },
+    "user": {
+      "userId": "amzn1.ask.account.AFENCV5NIXITVY5A5NNW2CVNH7VWABSEMEWVQDLKGMQKCCQUSRPQ3JDENR5JPCXURIIG5BBDC5FSK2DEJFELWKHI7VHEITW4Q633ONA2LCIANIMF3MB7QRKM6ASV2PQHMJRBXU72UM56ORQU73C6L64BDTSBYJEP47XJY74D46FZDVZQXGBFNK557I6WDQ2UZ4VIDHCSHYMV7JI"
+    },
+    "new": false
+  },
+  "request": {
+    "type": "IntentRequest",
+    "requestId": "EdwRequestId.98a3b47d-784c-4261-8720-66c712c6b68e",
+    "locale": "en-US",
+    "timestamp": "2016-12-30T04:41:29Z",
+    "intent": {
+      "name": "wineActionDetailIntent",
+      "slots": {
+        "Action": {
+          "name": "Action",
+          "value": "price"
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

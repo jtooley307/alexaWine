@@ -1,0 +1,10 @@
+
+wineSearchIntent find {Wine}
+wineSearchIntent search for {Wine}
+wineSearchIntent {Wine} with {Date}
+
+getWineDetailsIntent get details about number {WineNumber}
+getWineDetailsIntent Get details
+
+wineActionDetailIntent {Action}
+wineActionDetailIntent lookup {Action}

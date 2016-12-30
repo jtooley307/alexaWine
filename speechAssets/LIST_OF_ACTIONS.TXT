@@ -1,0 +1,4 @@
+location
+rating
+price
+description

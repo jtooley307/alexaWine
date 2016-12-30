@@ -1,0 +1,17 @@
+{
+  "intents":  [
+                { "intent": "AMAZON.HelpIntent", "slots": [] },
+                { "intent": "AMAZON.StopIntent", "slots": [] },
+                { "intent": "AMAZON.RepeatIntent", "slots": [] },
+                { "intent": "AMAZON.CancelIntent", "slots": [] },
+                { "intent": "AMAZON.StartOverIntent", "slots": [] },
+                { "intent": "AMAZON.YesIntent", "slots": [] },
+                { "intent": "AMAZON.NoIntent", "slots": [] },
+                { "intent": "AMAZON.NextIntent", "slots": []},
+                { "intent": "AMAZON.PreviousIntent", "slots": []},
+                { "intent": "getWineDetailsIntent", "slots": [{ "name": "Action", "type": "LIST_OF_ACTIONS" }, { "name": "ActionTwo", "type": "LIST_OF_ACTIONS" }] },  
+                { "intent": "wineActionDetailIntent", "slots": [{ "name": "Action", "type": "LIST_OF_ACTIONS" }] }, 
+                { "intent": "wineSearchIntent", "slots": [{ "name": "Wine", "type": "LIST_OF_WINES" },{ "name": "Date", "type": "AMAZON.DATE" }] }  
+                 
+              ]
+}
