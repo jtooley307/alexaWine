@@ -8,11 +8,7 @@ The wine.com api is not very exact, so I try do rank results by popularity.  Nee
 
 To use these programs you must download and install 'node' from http://nodejs.org
 
-	npm install -g teslams
-	
-or if you are not logged in as the root (administrator) use:
-	
-	sudo npm install -g teslams
+use need to get an API key from wine.com.  Register on the site.
 
 Need to install
 - .bash_profile for env variables
