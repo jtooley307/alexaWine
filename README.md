@@ -1,5 +1,9 @@
 README for Alexa Skills for finding Wine
 
+This uses the alexa SDK, and the wine.com api.  You can find the rating, location, and description of wines.
+
+The wine.com api is not very exact, so I try do rank results by popularity.  Needs more work.
+
 #Installation
 
 To use these programs you must download and install 'node' from http://nodejs.org
