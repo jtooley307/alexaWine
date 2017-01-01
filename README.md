@@ -1,4 +1,4 @@
-README for Alexa Skills for finding Wine
+#README for Alexa Skills for finding Wine
 
 This uses the alexa SDK, and the wine.com api.  You can find the rating, location, and description of wines.
 
@@ -23,3 +23,13 @@ Need to install
 #deployments
 
 I use serverless.  So you need to install it.  Then update the serverless.yml file
+
+serverless create --template aws-nodejs
+
+ set up a AWS and Alex account and skill
+
+ npm install alexa-sdk
+ npm install moment
+ npm install find-my-iphone
+
+ serverless deploy
