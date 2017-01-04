@@ -1,10 +1,17 @@
-
 wineSearchIntent find {Wine}
 wineSearchIntent search for {Wine}
-wineSearchIntent {Wine} with {Date}
 
-getWineDetailsIntent get details about number {WineNumber}
+getWineDetailsIntent get {Action} details
 getWineDetailsIntent Get details
+getWineDetailsIntent details
+
+getWineDetailsIntent tell me more
+getWineDetailsIntent tell me the {Action}
 
 wineActionDetailIntent {Action}
 wineActionDetailIntent lookup {Action}
+wineActionDetailIntent what is the {Action}
+wineActionDetailIntent give me all of the details
+
+AMAZON.CancelIntent done
+AMAZON.CancelIntent go back

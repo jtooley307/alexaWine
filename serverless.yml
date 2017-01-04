@@ -23,7 +23,7 @@ provider:
   profile: production
   memorySize: 512
   region: us-east-1
-  stage: dev
+  stage: production
 
 # you can overwrite defaults here
 #  stage: dev
@@ -53,4 +53,4 @@ functions:
   alexaWine:
     handler: index.handler
     description: "Wine Information Application (serverless deployment)"
-    timeout: 5
+    timeout: 3
