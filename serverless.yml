@@ -23,7 +23,7 @@ provider:
   profile: production
   memorySize: 512
   region: us-east-1
-  stage: production
+  stage: dev
 
 # you can overwrite defaults here
 #  stage: dev

@@ -180,6 +180,9 @@ var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
         currentWineIndex = 0;
         wineCount = 0;
       
+        // log what they asked to search for so we can learn how to improve the search results
+        pr('INFO, WINE SEARCH, INTENT='+wineName);
+
         getJsonFromWineShop(searchExpression, function(data){
             wineCount = data.Products.List.length;
             for (var i = 0; i < wineCount; i++) {
@@ -206,6 +209,7 @@ var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
                 alexa.emit(":tell", output);
               
             } else if (wineCount > 1) {
+                pr('INFO, WINE SEARCH RESULT, WINE='+wineList[currentWineIndex].name);
                 output = "I found " + wineCount + " wines that match. " + "The best match is, " + wineList[currentWineIndex].name + "<break time='1s'/>You can ask for details on this wine, or  go through the list by saying next. What would you like to do? ";
                 alexa.emit(":ask", output, output);
             
