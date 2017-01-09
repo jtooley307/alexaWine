@@ -29,7 +29,11 @@ serverless create --template aws-nodejs
  set up a AWS and Alex account and skill
 
  npm install alexa-sdk
- npm install moment
- npm install find-my-iphone
+ 
 
  serverless deploy
+
+ Revison Notes
+
+ 1.0.1  improved logging
+ 1.0    Jan-06-2017 first certified Alexa release
