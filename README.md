@@ -1,14 +1,26 @@
-#README for Alexa Skills for finding Wine
+#README for Alexa Wine Skill - Modernized
 
-This uses the alexa SDK, and the wine.com api.  You can find the rating, location, and description of wines.
+A robust Alexa skill that allows users to search for wines and get detailed information about them. This skill has been completely modernized with security fixes, error handling, and best practices.
 
-The wine.com api is not very exact, so I try do rank results by popularity.  Needs more work.
+## 🚀 Key Improvements
 
-#Installation
+### Security & Configuration
+- ✅ **Environment Variables**: API keys and configuration moved to environment variables
+- ✅ **HTTPS**: All external API calls use secure HTTPS connections
+- ✅ **Input Validation**: Comprehensive validation and sanitization of user input
+- ✅ **No Hardcoded Secrets**: API keys are properly externalized
 
-To use these programs you must download and install 'node' from http://nodejs.org
+### Architecture & Dependencies
+- ✅ **Modern SDK**: Upgraded from deprecated alexa-sdk v1 to ask-sdk-core v2
+- ✅ **Node.js 18.x**: Updated from outdated Node.js 4.3 runtime
+- ✅ **Modular Design**: Code split into logical modules (config, utils, services)
+- ✅ **Proper Error Handling**: Comprehensive error handling with user-friendly messages
 
-use need to get an API key from wine.com.  Register on the site.
+### Robustness & Reliability
+- ✅ **Session Management**: Uses session attributes instead of global variables
+- ✅ **Timeout Handling**: HTTP requests have proper timeout and retry logic
+- ✅ **Structured Logging**: Proper logging with different log levels
+- ✅ **Graceful Degradation**: Skill handles API failures gracefully
 
 Need to install
 - .bash_profile for env variables

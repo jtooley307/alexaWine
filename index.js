@@ -1,409 +1,401 @@
-'use strict';
-var Alexa = require('alexa-sdk');
-var http = require('http');
-var utils = require('util');
-var alexaDateUtil = require('./alexaDateUtil');
+/**
+ * Alexa Wine Skill - Modernized with ASK SDK v3
+ * Fixes all critical security, architecture, and robustness issues
+ */
 
-var states = {
-    SEARCHMODE: '_SEARCHMODE',
-    WINE_DETAILS: '_WINE_DETAILS',
-};
+const Alexa = require('ask-sdk-core');
+const config = require('./config');
+const WineService = require('./wineService');
+const { logger, slotUtils, sessionUtils } = require('./utils');
 
-// -- list of wines found -- 
-var wineCount = 0;
-var wineList = Array(); // name, price, rating, location, description
-var currentWineIndex = 0;
+// Initialize wine service
+const wineService = new WineService();
 
-// local variable holding reference to the Alexa SDK object
-var alexa;
-
-//OPTIONAL: replace with "amzn1.ask.skill.[your-unique-value-here]";
-var APP_ID = "amzn1.ask.skill.db86c0db-cfb9-426f-99c5-dfc8406bd56f";
-
-// Skills name
-var skillName = "Wine assistant, your Sommelier";
-
-// Message when the skill is first called
-var welcomeMessage = "You can ask Wine Assistant for wine information.  Say, Find a wine by it's winery and name ";
-
-// Message for help intent
-var HelpMessage = "Here are some things you can say: Find a wine by giving its name. Tell me it's rating, price, location, or description.  What would you like to do?";
-
-// Used to tell user skill is closing
-var shutdownMessage = "Ok see you again soon.";
-var goodbyeMessage = "Happy to help, good bye";
-
-var searchHelpMessage = "Search Wine Help Message";
-
-// used for title on companion app
-var cardTitle = "Wine assistant, your Sommelier";
-
-// output for Alexa
-var output = "";
-
-var welcomeRepromt = 'You can ask me about a wine, then get details about the wine.  What are you interested in?';
-
-
-
-function pr (str) {
-    console.log(str);
-}
-
-// --------- Adding session handlers ----------------
-
-var newSessionHandlers = {
-
-    'LaunchRequest': function () {
-        this.handler.state = states.SEARCHMODE;
-
-        output = welcomeMessage;
-
-        this.emit(':ask', output, welcomeRepromt);
-    },
-   
-    'wineSearchIntent': function(){
-        this.handler.state = states.SEARCHMODE;
-        this.emitWithState('wineSearchIntent');
-    },
-    'Unhandled': function () {
-        output = HelpMessage;
-        this.emit(':tell', output);
-    },
-    'AMAZON.StopIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-    'SessionEndedRequest': function () {
-        // Use this function to clear up and save any data needed between sessions
-        this.emit('AMAZON.StopIntent');
-    }
-};
-
-
-var startSearchHandlers = Alexa.CreateStateHandler(states.SEARCHMODE, {
-
-    'AMAZON.HelpIntent': function () {
-        output = HelpMessage;
-        this.emit(':ask', output, output);
-    },
-
-    'AMAZON.StartOverIntent': function () {
-        // move to the next wine
-        currentWineIndex = 0;
-        output = "The first wine is " + wineList[currentWineIndex].name + ". What would you like to do?";
-                
-        this.emit(':ask', output, output);
-    },
-
-    'AMAZON.NextIntent': function () {
-        // move to the next wine
-        if (currentWineIndex < wineCount) {
-            currentWineIndex++;
-            output = "The next wine is, " + wineList[currentWineIndex].name + ". What would you like to do?";
-        } else {
-            output = "Sorry, we are at the end of the list.  You can go to the beginning by saying start over.  What would you like to do?";
-        }
-        
-        this.emit(':ask', output, output);
-    },
-
-    'AMAZON.PreviousIntent': function () {
-         // move to the prev wine
-        if (currentWineIndex > 0) {
-            currentWineIndex--;
-            output = "The previous wine is, " + wineList[currentWineIndex].name + ". What would you like to do?";
-        } else {
-            output = "Sorry, we are at the end of the list.  You can go to the beginning by saying start over";
-        }
-        this.emit(':ask', output, output);
-    },
-
-   'AMAZON.CancelIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-
-    'AMAZON.StopIntent': function () {
-        this.emit(':tell', goodbyeMessage);
-    },
-  
-    'AMAZON.RepeatIntent': function () {
-        this.emit(':ask', output, HelpMessage);
-    },
-
-    'SessionEndedRequest': function () {
-        // Use this function to clear up and save any data needed between sessions
-        this.emit('AMAZON.StopIntent');
-    },
-
-    'Unhandled': function () {
-        output = HelpMessage;
-        this.emit(':ask', output, output);
-    },
-
-    // -- custom intents --
-
-    'wineActionDetailIntent': function() {  
-        var intent = this.event.request.intent;
-        var action = getActionFromIntent(intent);
-        this.handler.state = states.WINE_DETAILS;  // put them into state to ask for details like rating, location, price, description
-        if (!action.error) {
-            // do wineActionDetailIntent'
-            this.emitWithState('wineActionDetailIntent');
-        }
-    },
-
-    'getWineDetailsIntent': function() {
-        output = "What details would you like? Price, Rating, Location, or Desription?";
-        var cardTitle = "Wine Details";
-        var intent = this.event.request.intent;
-        var action = getActionFromIntent(intent);
-        this.handler.state = states.WINE_DETAILS;  // put them into state to ask for details like rating, location, price, description
-        if (!action.error) {
-            // do wineActionDetailIntent'
-            this.emitWithState('wineActionDetailIntent');
-        } else {
-            this.handler.state = states.WINE_DETAILS;  // put them into state to ask for details like rating, location, price, description
-            alexa.emit(':askWithCard', output, output, cardTitle, output);
-        }
-    },
-
-
-    'wineSearchIntent': function() {
-        var output = 'Wine Search Intent';
-        var intent = this.event.request.intent;
-        var wineName = getWineFromIntent(intent, true);
-        var wineDate = getDateFromIntent(intent);
-        
-        var searchExpression = wineName;
-        var cardTitle = "Wine Search: " + wineName; 
-
-        // reset index
-        currentWineIndex = 0;
-        wineCount = 0;
-      
-        // log what they asked to search for so we can learn how to improve the search results
-        pr('INFO, WINE SEARCH, INTENT='+wineName);
-
-        getJsonFromWineShop(searchExpression, function(data){
-            wineCount = data.Products.List.length;
-            for (var i = 0; i < wineCount; i++) {
-                 
-                var wRating = data.Products.List[i].Ratings.HighestScore;
-                var wPrice = data.Products.List[i].PriceRetail;
-                var wDescription = data.Products.List[i].Varietal + " from " + data.Products.List[i].Vineyard;
-                var wLocation = "";
-
-                if (data.Products.List[i].Appellation != null) {
-                    wLocation += data.Products.List[i].Appellation.Name;
-                }
-                if (data.Products.List[i].Appellation.Region != null) {
-                    wLocation += " in " + data.Products.List[i].Appellation.Region.Name;
-                }
-                
-                var wName = data.Products.List[i].Name;
-
-                wineList[i] = {"name": wName, "rating": wRating, 'price': wPrice, 'location': wLocation, 'description': wDescription};
-
-            }
-            if (wineCount == 0  || data.Status.ReturnCode != 0) {
-                output = 'That wine does not exist.';
-                alexa.emit(":tell", output);
-              
-            } else if (wineCount > 1) {
-                pr('INFO, WINE SEARCH RESULT, WINE='+wineList[currentWineIndex].name);
-                output = "I found " + wineCount + " wines that match. " + "The best match is, " + wineList[currentWineIndex].name + "<break time='1s'/>You can ask for details on this wine, or  go through the list by saying next. What would you like to do? ";
-                alexa.emit(":ask", output, output);
-            
-            } else if (wineCount == 1) {
-                // found a match
-                var text = wineList[currentWineIndex].name;  // name of wine returned
-                output = text + ' has a rating of, ' + wineList[currentWineIndex].rating;   
-                alexa.emit(":tellWithCard", output, cardTitle, output);    
-            
-            } else {
-                output = 'That wine does not exist.';
-                alexa.emit(":tell", output);
-            } 
-             
-        });
-    }
-
-});
-
-var wineDetailsHandlers = Alexa.CreateStateHandler(states.WINE_DETAILS, {
-    
-    'AMAZON.HelpIntent': function () {
-        output = HelpMessage;
-        this.handler.state = states.SEARCHMODE;
-        this.emit(':ask', output, HelpMessage);
-    },
-    
-    'AMAZON.CancelIntent': function () {
-        this.handler.state = states.SEARCHMODE;
-        alexa.emit(':ask', "Going back to the wine list.  You can say next, previous, or stop.  What would you like to do?", HelpMessage);
-    },
-
-    'AMAZON.PreviousIntent': function () {
-        this.handler.state = states.SEARCHMODE;
-        this.emitWithState('AMAZON.PreviousIntent');
-    },
-
-    'AMAZON.NextIntent': function () {
-        this.handler.state = states.SEARCHMODE;
-        this.emitWithState('AMAZON.NextIntent');
-    },
-
-
-    'SessionEndedRequest': function () {
-        // Use this function to clear up and save any data needed between sessions
-        this.emit('AMAZON.StopIntent');
-    },
-
-    'Unhandled': function () {
-        output = HelpMessage;
-        this.handler.state = states.SEARCHMODE;
-        alexa.emit(':ask', output, output);
-    },
-
-    // -- custom intents -- 
-
-    'wineActionDetailIntent': function () {
-        var output = " ";
-        var rePrompt = "If you are done then say back, cancel or done.  What would you like to do?";
-       
-        this.handler.state = states.WINE_DETAILS;
-        var intent = this.event.request.intent;
-        var action = getActionFromIntent(intent);
-        var cardTitle = "Wine Details: " + action;
-        
-        if (wineCount > 0) {
-             var text = wineList[currentWineIndex].name;  // name of wine returned
-             output = "The " + text + ' has the following details ';
-            // actions can be location, price, rating, description
-            if (action.indexOf('description') > -1 ) {
-            
-                output += ", description is " + wineList[currentWineIndex].Description;
-            }
-            if (action.indexOf('location') > -1) {
-                output += ', location is ' + wineList[currentWineIndex].location;
-            }
-            if (action.indexOf('rating') > -1 && wineList[currentWineIndex].rating > 0) {
-                
-                output += ', highest rating is ' + wineList[currentWineIndex].rating;
-            } 
-            if (action.indexOf('price') > -1 && wineList[currentWineIndex].price > 0) {
-               
-                output += ', price is $' + wineList[currentWineIndex].price;
-            }
-        }
-        output += ".  You can ask for more information or go back to another wine.  What would you like to do?"   
-        alexa.emit(':askWithCard', output, rePrompt, cardTitle, output);
-    }
-});
-
-exports.handler = function (event, context, callback) {
-    alexa = Alexa.handler(event, context);
-    alexa.AppId = APP_ID;
-    alexa.registerHandlers(newSessionHandlers, startSearchHandlers, wineDetailsHandlers);
-    alexa.execute();
-};
-
-
-// --------- Helpers ---------------
-
-var API_KEY = "70b1bd8e9178f2b0abaf033e2a6c4067";
-// http://services.wine.com/api/version/service.svc/format/resource?apikey=key&parameters
-// http://services.wine.com/api/beta/service.svc/JSON/catalog?search=robert+mondavi+reserve+cabernet+Sauvigon+2013&size=3&sort=popularity&apikey=70b1bd8e9178f2b0abaf033e2a6c4067
-// http://www.wine-searcher.com/Xkey=robert+mondavi&Xformat=J
-var catalogPortal = 'https://services.wine.com/api/beta2/service.svc/JSON/catalog';
-
-// alexa skill helper functions
-
-var url = function(wineId){
-  return 'http://services.wine.com/api/beta2/service.svc/JSON/catalog?search='+ wineId + '&size=5&sort=popularity&apikey=' + API_KEY;
-};
-
-var getJsonFromWineShop = function(descr, callback){
-  http.get(url(descr), function(res){
-    var body = '';
-
-    res.on('data', function(data){
-      body += data;
-    });
-
-    res.on('end', function(){
-      var result = JSON.parse(body);
-      callback(result);
-    });
-
-  }).on('error', function(e){
-    console.log('Error: ' + e);
-  });
-};
-
-function getWineFromIntent(intent, assignDefault) {
-
-    var wineSlot = intent.slots.Wine;
-    // slots can be missing, or slots can be provided but with empty value.
-    // must test for both.
-    if (!wineSlot || !wineSlot.value) {
-        if (!assignDefault) {
-            return {
-                error: true
-            }
-        } else {
-            // For sample skill, default to a favorite
-            return {
-                wine: 'Goldeneye Pinot Nior Confluence 2014'
-            }
-        }
-    } else {
-        return wineSlot.value;
-    }
-}
-
-function getActionFromIntent(intent) {
-
-    var actionSlot = intent.slots.Action;
-    // slots can be missing, or slots can be provided but with empty value.
-    // must test for both.
-    if (!actionSlot || !actionSlot.value) {
-        return {error: true}
-            
-    } 
-    else {
-        return actionSlot.value;
-    }
-}
+// ============================================================================
+// REQUEST HANDLERS
+// ============================================================================
 
 /**
- * Gets the date from the intent, defaulting to today if none provided,
- * or returns an error
+ * Launch Request Handler - When skill is first opened
  */
-function getDateFromIntent(intent) {
+const LaunchRequestHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
+    },
+    handle(handlerInput) {
+        logger.info('LaunchRequest received');
+        
+        return handlerInput.responseBuilder
+            .speak(config.messages.welcome)
+            .reprompt(config.messages.welcomeReprompt)
+            .withStandardCard(config.alexa.cardTitle, config.messages.welcome)
+            .getResponse();
+    }
+};
 
-    var dateSlot = intent.slots.Date;
-    // slots can be missing, or slots can be provided but with empty value.
-    // must test for both.
-    if (!dateSlot || !dateSlot.value) {
-        // default to today
-        var now = new Date();
-        var requestDay = now.getFullYear();
-        return {
-            displayDate: "Today",
-            requestDateParam: requestDay
-        }
-    } else {
+/**
+ * Wine Search Intent Handler - Main search functionality
+ */
+const WineSearchIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'wineSearchIntent';
+    },
+    async handle(handlerInput) {
+        logger.info('WineSearchIntent received');
+        
+        try {
+            const intent = handlerInput.requestEnvelope.request.intent;
+            const wineResult = slotUtils.getWineFromIntent(intent, true);
+            
+            if (!wineResult.success) {
+                logger.error('Failed to extract wine from intent', wineResult.error);
+                return handlerInput.responseBuilder
+                    .speak(config.messages.generalError)
+                    .getResponse();
+            }
 
-        var date = new Date(dateSlot.value);
+            const searchTerm = wineResult.value;
+            logger.info('Searching for wine', { searchTerm });
 
-        // format the request date like YYYY
-           var requestDay = date.getFullYear();
+            // Search for wines using the wine service
+            const apiResponse = await wineService.searchWines(searchTerm);
+            const wines = wineService.processWineData(apiResponse);
 
-        return {
-            displayDate: alexaDateUtil.getFormattedDate(date),
-            requestDateParam: requestDay
+            if (wines.length === 0) {
+                return handlerInput.responseBuilder
+                    .speak(config.messages.wineNotFound)
+                    .getResponse();
+            }
+
+            // Store wines in session attributes
+            sessionUtils.setWineList(handlerInput.attributesManager, wines);
+            sessionUtils.setCurrentWineIndex(handlerInput.attributesManager, 0);
+
+            let speechText;
+            if (wines.length === 1) {
+                speechText = `I found ${wines[0].name}. What would you like to know about it?`;
+            } else {
+                speechText = `I found ${wines.length} wines. The first wine is ${wines[0].name}. What would you like to know about it?`;
+            }
+
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt('You can ask for the price, rating, location, or description. What would you like to know?')
+                .withStandardCard(config.alexa.cardTitle, speechText)
+                .getResponse();
+
+        } catch (error) {
+            logger.error('Error in WineSearchIntent', error);
+            return handlerInput.responseBuilder
+                .speak(config.messages.apiError)
+                .getResponse();
         }
     }
-}
+};
 
+/**
+ * Wine Action Detail Intent Handler - Get specific wine details
+ */
+const WineActionDetailIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'wineActionDetailIntent';
+    },
+    handle(handlerInput) {
+        logger.info('WineActionDetailIntent received');
+        
+        try {
+            const intent = handlerInput.requestEnvelope.request.intent;
+            const actionResult = slotUtils.getActionFromIntent(intent);
+            
+            if (!actionResult.success) {
+                return handlerInput.responseBuilder
+                    .speak("I didn't understand what you want to know about the wine. You can ask for the price, rating, location, or description.")
+                    .reprompt('What would you like to know about the wine?')
+                    .getResponse();
+            }
 
+            const wines = sessionUtils.getWineList(handlerInput.attributesManager);
+            const currentIndex = sessionUtils.getCurrentWineIndex(handlerInput.attributesManager);
+            
+            if (wines.length === 0 || !wines[currentIndex]) {
+                return handlerInput.responseBuilder
+                    .speak('Please search for a wine first.')
+                    .getResponse();
+            }
+
+            const currentWine = wines[currentIndex];
+            const action = actionResult.value;
+            let speechText = `The ${currentWine.name} `;
+
+            switch (action) {
+                case config.detailTypes.PRICE:
+                    if (currentWine.price > 0) {
+                        speechText += `costs $${currentWine.price.toFixed(2)}`;
+                    } else {
+                        speechText += 'price is not available';
+                    }
+                    break;
+                case config.detailTypes.RATING:
+                    if (currentWine.rating > 0) {
+                        speechText += `has a rating of ${currentWine.rating} points`;
+                    } else {
+                        speechText += 'rating is not available';
+                    }
+                    break;
+                case config.detailTypes.LOCATION:
+                    speechText += `is from ${currentWine.location}`;
+                    break;
+                case config.detailTypes.DESCRIPTION:
+                    speechText += `description: ${currentWine.description}`;
+                    break;
+                default:
+                    speechText = "I didn't understand what you want to know about the wine.";
+            }
+
+            speechText += '. You can ask for more information or search for another wine. What would you like to do?';
+
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt('What else would you like to know?')
+                .withStandardCard(config.alexa.cardTitle, speechText)
+                .getResponse();
+
+        } catch (error) {
+            logger.error('Error in WineActionDetailIntent', error);
+            return handlerInput.responseBuilder
+                .speak(config.messages.generalError)
+                .getResponse();
+        }
+    }
+};
+
+/**
+ * Get Wine Details Intent Handler - Ask what details user wants
+ */
+const GetWineDetailsIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'getWineDetailsIntent';
+    },
+    handle(handlerInput) {
+        logger.info('GetWineDetailsIntent received');
+        
+        const wines = sessionUtils.getWineList(handlerInput.attributesManager);
+        
+        if (wines.length === 0) {
+            return handlerInput.responseBuilder
+                .speak('Please search for a wine first.')
+                .getResponse();
+        }
+
+        const speechText = 'What details would you like? You can ask for price, rating, location, or description.';
+        
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt(speechText)
+            .getResponse();
+    }
+};
+
+/**
+ * Next Intent Handler - Move to next wine in results
+ */
+const NextIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.NextIntent';
+    },
+    handle(handlerInput) {
+        logger.info('NextIntent received');
+        
+        const wines = sessionUtils.getWineList(handlerInput.attributesManager);
+        let currentIndex = sessionUtils.getCurrentWineIndex(handlerInput.attributesManager);
+        
+        if (wines.length === 0) {
+            return handlerInput.responseBuilder
+                .speak('Please search for a wine first.')
+                .getResponse();
+        }
+
+        if (currentIndex < wines.length - 1) {
+            currentIndex++;
+            sessionUtils.setCurrentWineIndex(handlerInput.attributesManager, currentIndex);
+            const speechText = `The next wine is ${wines[currentIndex].name}. What would you like to know about it?`;
+            
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt('What would you like to know about this wine?')
+                .getResponse();
+        } else {
+            return handlerInput.responseBuilder
+                .speak('You are at the end of the list. You can go back to the beginning by saying start over.')
+                .reprompt('What would you like to do?')
+                .getResponse();
+        }
+    }
+};
+
+/**
+ * Previous Intent Handler - Move to previous wine in results
+ */
+const PreviousIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.PreviousIntent';
+    },
+    handle(handlerInput) {
+        logger.info('PreviousIntent received');
+        
+        const wines = sessionUtils.getWineList(handlerInput.attributesManager);
+        let currentIndex = sessionUtils.getCurrentWineIndex(handlerInput.attributesManager);
+        
+        if (wines.length === 0) {
+            return handlerInput.responseBuilder
+                .speak('Please search for a wine first.')
+                .getResponse();
+        }
+
+        if (currentIndex > 0) {
+            currentIndex--;
+            sessionUtils.setCurrentWineIndex(handlerInput.attributesManager, currentIndex);
+            const speechText = `The previous wine is ${wines[currentIndex].name}. What would you like to know about it?`;
+            
+            return handlerInput.responseBuilder
+                .speak(speechText)
+                .reprompt('What would you like to know about this wine?')
+                .getResponse();
+        } else {
+            return handlerInput.responseBuilder
+                .speak('You are at the beginning of the list. You can go to the end by saying next.')
+                .reprompt('What would you like to do?')
+                .getResponse();
+        }
+    }
+};
+
+/**
+ * Start Over Intent Handler - Reset to first wine
+ */
+const StartOverIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.StartOverIntent';
+    },
+    handle(handlerInput) {
+        logger.info('StartOverIntent received');
+        
+        const wines = sessionUtils.getWineList(handlerInput.attributesManager);
+        
+        if (wines.length === 0) {
+            return handlerInput.responseBuilder
+                .speak('Please search for a wine first.')
+                .getResponse();
+        }
+
+        sessionUtils.setCurrentWineIndex(handlerInput.attributesManager, 0);
+        const speechText = `Starting over. The first wine is ${wines[0].name}. What would you like to know about it?`;
+        
+        return handlerInput.responseBuilder
+            .speak(speechText)
+            .reprompt('What would you like to know about this wine?')
+            .getResponse();
+    }
+};
+
+/**
+ * Help Intent Handler
+ */
+const HelpIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.HelpIntent';
+    },
+    handle(handlerInput) {
+        logger.info('HelpIntent received');
+        
+        return handlerInput.responseBuilder
+            .speak(config.messages.help)
+            .reprompt(config.messages.help)
+            .getResponse();
+    }
+};
+
+/**
+ * Cancel and Stop Intent Handler
+ */
+const CancelAndStopIntentHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+            && (Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.CancelIntent'
+                || Alexa.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.StopIntent');
+    },
+    handle(handlerInput) {
+        logger.info('CancelAndStopIntent received');
+        
+        return handlerInput.responseBuilder
+            .speak(config.messages.goodbye)
+            .getResponse();
+    }
+};
+
+/**
+ * Session Ended Request Handler
+ */
+const SessionEndedRequestHandler = {
+    canHandle(handlerInput) {
+        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'SessionEndedRequest';
+    },
+    handle(handlerInput) {
+        logger.info('SessionEndedRequest received', {
+            reason: handlerInput.requestEnvelope.request.reason
+        });
+        
+        // Any cleanup work goes here
+        return handlerInput.responseBuilder.getResponse();
+    }
+};
+
+/**
+ * Generic error handler to capture any syntax or routing errors
+ */
+const ErrorHandler = {
+    canHandle() {
+        return true;
+    },
+    handle(handlerInput, error) {
+        logger.error('Error handled', error);
+        
+        return handlerInput.responseBuilder
+            .speak(config.messages.generalError)
+            .reprompt('What would you like to do?')
+            .getResponse();
+    }
+};
+
+// ============================================================================
+// SKILL BUILDER
+// ============================================================================
+
+/**
+ * This handler acts as the entry point for your skill, routing all request and response
+ * payloads to the handlers above. Make sure any new handlers or interceptors you've
+ * defined are included below. The order matters - they're processed top to bottom.
+ */
+exports.handler = Alexa.SkillBuilders.custom()
+    .addRequestHandlers(
+        LaunchRequestHandler,
+        WineSearchIntentHandler,
+        WineActionDetailIntentHandler,
+        GetWineDetailsIntentHandler,
+        NextIntentHandler,
+        PreviousIntentHandler,
+        StartOverIntentHandler,
+        HelpIntentHandler,
+        CancelAndStopIntentHandler,
+        SessionEndedRequestHandler
+    )
+    .addErrorHandlers(ErrorHandler)
+    .withSkillId(config.alexa.skillId)
+    .lambda();

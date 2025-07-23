@@ -1,0 +1,35 @@
+red wine
+white wine
+rosé wine
+rose wine
+sparkling wine
+champagne
+prosecco
+cava
+dessert wine
+port wine
+sherry
+cabernet sauvignon
+merlot
+pinot noir
+syrah
+shiraz
+malbec
+zinfandel
+sangiovese
+tempranillo
+grenache
+barbera
+nebbiolo
+chardonnay
+sauvignon blanc
+pinot grigio
+pinot gris
+riesling
+gewürztraminer
+viognier
+chenin blanc
+albariño
+vermentino
+moscato
+muscat

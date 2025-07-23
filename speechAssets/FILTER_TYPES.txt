@@ -1,0 +1,24 @@
+by price
+by rating
+by region
+by vintage
+by winery
+by type
+by varietal
+by color
+by style
+by body
+by sweetness
+by alcohol content
+by availability
+by popularity
+by critic score
+by user rating
+by awards
+by organic
+by biodynamic
+by sustainable
+by vegan
+by vegetarian
+by sulfite free
+by low sulfite

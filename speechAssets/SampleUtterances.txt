@@ -1,17 +1,228 @@
 wineSearchIntent find {Wine}
 wineSearchIntent search for {Wine}
+wineSearchIntent look up {Wine}
+wineSearchIntent tell me about {Wine}
+wineSearchIntent I want to know about {Wine}
+wineSearchIntent show me {Wine}
+wineSearchIntent find me {Wine}
+wineSearchIntent search {Wine}
+wineSearchIntent do you have {Wine}
+wineSearchIntent what about {Wine}
+wineSearchIntent find a {Wine} from {Vintage}
+wineSearchIntent search for {Wine} from {Winery}
+wineSearchIntent look for {WineType} from {Region}
+wineSearchIntent find {WineType} wines
+wineSearchIntent search for {Vintage} {Wine}
+
+searchByWineTypeIntent find {WineType}
+searchByWineTypeIntent search for {WineType}
+searchByWineTypeIntent show me {WineType} wines
+searchByWineTypeIntent I want {WineType}
+searchByWineTypeIntent look for {WineType}
+searchByWineTypeIntent find {WineType} from {Region}
+searchByWineTypeIntent search for {WineType} under {PriceRange}
+searchByWineTypeIntent show me {PriceRange} {WineType}
+searchByWineTypeIntent I need a {WineType}
+searchByWineTypeIntent what {WineType} do you have
+
+searchByWineryIntent find wines from {Winery}
+searchByWineryIntent search for {Winery} wines
+searchByWineryIntent show me {Winery}
+searchByWineryIntent what does {Winery} make
+searchByWineryIntent find {Winery} {WineType}
+searchByWineryIntent search for {Vintage} {Winery}
+searchByWineryIntent look for {Winery} {WineType}
+searchByWineryIntent do you have {Winery} wines
+searchByWineryIntent tell me about {Winery}
+searchByWineryIntent show me {Winery} {WineType}
+
+searchByRegionIntent find wines from {Region}
+searchByRegionIntent search for {Region} wines
+searchByRegionIntent show me {Region}
+searchByRegionIntent what wines are from {Region}
+searchByRegionIntent find {WineType} from {Region}
+searchByRegionIntent search for {Region} {WineType}
+searchByRegionIntent look for {PriceRange} wines from {Region}
+searchByRegionIntent show me {Region} {WineType}
+searchByRegionIntent tell me about {Region} wines
+searchByRegionIntent do you have wines from {Region}
+
+searchByPriceIntent find {PriceRange} wines
+searchByPriceIntent search for {PriceRange}
+searchByPriceIntent show me {PriceRange} options
+searchByPriceIntent what's {PriceRange}
+searchByPriceIntent find wines under {MaxPrice} dollars
+searchByPriceIntent search for wines between {MinPrice} and {MaxPrice} dollars
+searchByPriceIntent show me {PriceRange} {WineType}
+searchByPriceIntent I want something {PriceRange}
+searchByPriceIntent find {WineType} that's {PriceRange}
+searchByPriceIntent what do you have for under {MaxPrice}
+
+searchByRatingIntent find highly rated wines
+searchByRatingIntent search for wines rated above {MinRating}
+searchByRatingIntent show me wines with at least {MinRating} points
+searchByRatingIntent find {WineType} with high ratings
+searchByRatingIntent search for top rated {WineType}
+searchByRatingIntent show me the best {WineType} from {Region}
+searchByRatingIntent find wines rated {MinRating} or higher
+searchByRatingIntent what are the highest rated wines
+searchByRatingIntent show me award winning wines
+searchByRatingIntent find critically acclaimed {WineType}
+
+searchByVintageIntent find {Vintage} wines
+searchByVintageIntent search for {Vintage}
+searchByVintageIntent show me {Vintage} {WineType}
+searchByVintageIntent find {WineType} from {Vintage}
+searchByVintageIntent search for {Vintage} {Winery}
+searchByVintageIntent what {Vintage} wines do you have
+searchByVintageIntent show me {Vintage} vintage
+searchByVintageIntent find wines from the year {Vintage}
+searchByVintageIntent search for {Vintage} {WineType} from {Winery}
+searchByVintageIntent tell me about {Vintage} wines
+
+winePairingIntent what wine goes with {Food}
+winePairingIntent pair wine with {Food}
+winePairingIntent what should I drink with {Food}
+winePairingIntent recommend wine for {Food}
+winePairingIntent wine pairing for {Food}
+winePairingIntent what wine for {Occasion}
+winePairingIntent suggest wine for {Food}
+winePairingIntent match wine with {Food}
+winePairingIntent what {WineType} goes with {Food}
+winePairingIntent pair {WineType} with {Food}
+
+wineRecommendationIntent recommend a wine
+wineRecommendationIntent suggest a wine
+wineRecommendationIntent what should I drink
+wineRecommendationIntent recommend something for {Occasion}
+wineRecommendationIntent suggest a {WineType}
+wineRecommendationIntent what's good for {Occasion}
+wineRecommendationIntent recommend {PriceRange} wine
+wineRecommendationIntent suggest something {PriceRange}
+wineRecommendationIntent what do you recommend
+wineRecommendationIntent give me a recommendation
+
+compareWinesIntent compare {WineOne} and {WineTwo}
+compareWinesIntent what's the difference between {WineOne} and {WineTwo}
+compareWinesIntent {WineOne} versus {WineTwo}
+compareWinesIntent compare {WineOne} to {WineTwo}
+compareWinesIntent which is better {WineOne} or {WineTwo}
+compareWinesIntent tell me about {WineOne} and {WineTwo}
+compareWinesIntent compare the {ComparisonType} of {WineOne} and {WineTwo}
+compareWinesIntent how do {WineOne} and {WineTwo} compare
+compareWinesIntent difference between {WineOne} and {WineTwo}
+compareWinesIntent {WineOne} or {WineTwo}
+
+learnAboutWineIntent tell me about {WineType}
+learnAboutWineIntent teach me about {WineType}
+learnAboutWineIntent what is {WineType}
+learnAboutWineIntent explain {WineType}
+learnAboutWineIntent learn about {Region}
+learnAboutWineIntent tell me about {Region} wines
+learnAboutWineIntent what makes {Region} special
+learnAboutWineIntent teach me about {Topic}
+learnAboutWineIntent explain {Topic}
+learnAboutWineIntent what is {Topic}
+
+addToFavoritesIntent add {Wine} to favorites
+addToFavoritesIntent save {Wine}
+addToFavoritesIntent remember {Wine}
+addToFavoritesIntent add this to my favorites
+addToFavoritesIntent I like {Wine}
+addToFavoritesIntent favorite {Wine}
+addToFavoritesIntent bookmark {Wine}
+addToFavoritesIntent save this wine
+addToFavoritesIntent add to my list
+addToFavoritesIntent remember this one
+
+showFavoritesIntent show my favorites
+showFavoritesIntent what are my favorites
+showFavoritesIntent my favorite wines
+showFavoritesIntent show my saved wines
+showFavoritesIntent what did I save
+showFavoritesIntent my wine list
+showFavoritesIntent show my bookmarks
+showFavoritesIntent what wines do I like
+showFavoritesIntent my preferences
+showFavoritesIntent show saved wines
+
+popularWinesIntent what's popular
+popularWinesIntent show me popular wines
+popularWinesIntent what's trending
+popularWinesIntent most popular wines
+popularWinesIntent trending wines
+popularWinesIntent what's hot
+popularWinesIntent popular {WineType}
+popularWinesIntent trending {WineType} from {Region}
+popularWinesIntent most popular {PriceRange} wines
+popularWinesIntent what's popular in {Region}
+
+checkAvailabilityIntent is {Wine} available
+checkAvailabilityIntent do you have {Wine}
+checkAvailabilityIntent can I get {Wine}
+checkAvailabilityIntent is {Wine} in stock
+checkAvailabilityIntent availability of {Wine}
+checkAvailabilityIntent where can I find {Wine}
+checkAvailabilityIntent can I buy {Wine}
+checkAvailabilityIntent is {Wine} for sale
+checkAvailabilityIntent do you carry {Wine}
+checkAvailabilityIntent stock check {Wine}
+
+filterWinesIntent filter {FilterType}
+filterWinesIntent show me wines {FilterType}
+filterWinesIntent filter by {FilterType}
+filterWinesIntent sort {FilterType}
+filterWinesIntent organize {FilterType}
+filterWinesIntent search {FilterType} for {FilterValue}
+filterWinesIntent filter {WineType} {FilterType}
+filterWinesIntent show {FilterType} options
+filterWinesIntent narrow down {FilterType}
+filterWinesIntent refine search {FilterType}
+
+surpriseMeIntent surprise me
+surpriseMeIntent random wine
+surpriseMeIntent pick something for me
+surpriseMeIntent dealer's choice
+surpriseMeIntent something different
+surpriseMeIntent surprise me with {WineType}
+surpriseMeIntent random {PriceRange} wine
+surpriseMeIntent pick a {WineType}
+surpriseMeIntent something new
+surpriseMeIntent what do you suggest
 
 getWineDetailsIntent get {Action} details
-getWineDetailsIntent Get details
+getWineDetailsIntent get details
 getWineDetailsIntent details
-
 getWineDetailsIntent tell me more
 getWineDetailsIntent tell me the {Action}
+getWineDetailsIntent more information
+getWineDetailsIntent full details
+getWineDetailsIntent everything about this wine
+getWineDetailsIntent complete information
+getWineDetailsIntent all details
 
 wineActionDetailIntent {Action}
 wineActionDetailIntent lookup {Action}
 wineActionDetailIntent what is the {Action}
-wineActionDetailIntent give me all of the details
+wineActionDetailIntent tell me the {Action}
+wineActionDetailIntent show me the {Action}
+wineActionDetailIntent what's the {Action}
+wineActionDetailIntent give me the {Action}
+wineActionDetailIntent {Action} information
+wineActionDetailIntent how much does it cost
+wineActionDetailIntent what's the price
+wineActionDetailIntent where is it from
+wineActionDetailIntent what's the rating
+wineActionDetailIntent tell me about this wine
+wineActionDetailIntent describe this wine
+wineActionDetailIntent wine details
+wineActionDetailIntent more about this wine
 
 AMAZON.CancelIntent done
 AMAZON.CancelIntent go back
+AMAZON.CancelIntent cancel
+AMAZON.CancelIntent never mind
+AMAZON.CancelIntent exit
+AMAZON.CancelIntent quit
+AMAZON.CancelIntent stop
+AMAZON.CancelIntent that's all

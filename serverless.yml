@@ -19,11 +19,15 @@ service: alexaWine # NOTE: update this with your service name
 
 provider:
   name: aws
-  runtime: nodejs4.3
-  profile: production
+  runtime: nodejs18.x
   memorySize: 512
   region: us-east-1
   stage: dev
+  environment:
+    WINE_API_KEY: ${env:WINE_API_KEY}
+    WINE_API_BASE_URL: ${env:WINE_API_BASE_URL, 'https://services.wine.com/api/beta2/service.svc/JSON'}
+    ALEXA_SKILL_ID: ${env:ALEXA_SKILL_ID, 'amzn1.ask.skill.db86c0db-cfb9-426f-99c5-dfc8406bd56f'}
+    LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
 
 # you can overwrite defaults here
 #  stage: dev
@@ -46,7 +50,16 @@ provider:
 
 # you can add packaging information here
 package:
-  exclude: speechAssets
+  exclude:
+    - speechAssets/**
+    - tests/**
+    - test-api.js
+    - README.md
+    - .git/**
+    - .ask/**
+    - "*.csv"
+  include:
+    - wineDatabase.json
 #  artifact: my-service-code.zip
 
 functions:

@@ -22,6 +22,8 @@
         { "name": "Date", "type": "AMAZON.DATE" }
       ]
     },
+    
+    // Enhanced wine detail intents
     { 
       "intent": "getWineDetailsIntent", 
       "slots": [
@@ -35,6 +37,8 @@
         { "name": "Action", "type": "LIST_OF_ACTIONS" }
       ]
     },
+    
+    // Wine type and varietal search
     {
       "intent": "searchByWineTypeIntent",
       "slots": [
@@ -43,6 +47,8 @@
         { "name": "PriceRange", "type": "PRICE_RANGES" }
       ]
     },
+    
+    // Winery-specific search
     {
       "intent": "searchByWineryIntent",
       "slots": [
@@ -51,6 +57,8 @@
         { "name": "Vintage", "type": "AMAZON.FOUR_DIGIT_NUMBER" }
       ]
     },
+    
+    // Region-based search
     {
       "intent": "searchByRegionIntent",
       "slots": [
@@ -59,6 +67,8 @@
         { "name": "PriceRange", "type": "PRICE_RANGES" }
       ]
     },
+    
+    // Price-based queries
     {
       "intent": "searchByPriceIntent",
       "slots": [
@@ -68,6 +78,8 @@
         { "name": "MinPrice", "type": "AMAZON.NUMBER" }
       ]
     },
+    
+    // Rating-based queries
     {
       "intent": "searchByRatingIntent",
       "slots": [
@@ -76,6 +88,8 @@
         { "name": "Region", "type": "WINE_REGIONS" }
       ]
     },
+    
+    // Vintage-specific search
     {
       "intent": "searchByVintageIntent",
       "slots": [
@@ -84,6 +98,8 @@
         { "name": "Winery", "type": "LIST_OF_WINERY" }
       ]
     },
+    
+    // Wine pairing and recommendation intents
     {
       "intent": "winePairingIntent",
       "slots": [
@@ -92,6 +108,7 @@
         { "name": "WineType", "type": "WINE_TYPES" }
       ]
     },
+    
     {
       "intent": "wineRecommendationIntent",
       "slots": [
@@ -100,6 +117,8 @@
         { "name": "WineType", "type": "WINE_TYPES" }
       ]
     },
+    
+    // Comparison intents
     {
       "intent": "compareWinesIntent",
       "slots": [
@@ -108,6 +127,8 @@
         { "name": "ComparisonType", "type": "LIST_OF_ACTIONS" }
       ]
     },
+    
+    // Educational intents
     {
       "intent": "learnAboutWineIntent",
       "slots": [
@@ -116,16 +137,21 @@
         { "name": "Topic", "type": "WINE_TOPICS" }
       ]
     },
+    
+    // Favorites and wishlist
     {
       "intent": "addToFavoritesIntent",
       "slots": [
         { "name": "Wine", "type": "LIST_OF_WINES" }
       ]
     },
+    
     {
       "intent": "showFavoritesIntent",
       "slots": []
     },
+    
+    // Popular and trending wines
     {
       "intent": "popularWinesIntent",
       "slots": [
@@ -134,12 +160,16 @@
         { "name": "PriceRange", "type": "PRICE_RANGES" }
       ]
     },
+    
+    // Wine availability and purchasing
     {
       "intent": "checkAvailabilityIntent",
       "slots": [
         { "name": "Wine", "type": "LIST_OF_WINES" }
       ]
     },
+    
+    // Advanced filtering
     {
       "intent": "filterWinesIntent",
       "slots": [
@@ -148,6 +178,8 @@
         { "name": "WineType", "type": "WINE_TYPES" }
       ]
     },
+    
+    // Random wine suggestion
     {
       "intent": "surpriseMeIntent",
       "slots": [
