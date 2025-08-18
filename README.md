@@ -1,6 +1,6 @@
 # Alexa Wine Skill - Complete Migration & Modernization
 
-🍷 **A sophisticated Alexa skill for wine enthusiasts** - completely migrated from Node.js to Python with modern architecture, hybrid data sources, and production deployment.
+🍷 **A sophisticated Alexa skill for wine enthusiasts** - completely migrated from Node.js to Python with modern architecture and production deployment.
 
 ## 🎉 **Migration Complete: Node.js → Python**
 
@@ -8,24 +8,16 @@ This project showcases a **complete migration** from the original Node.js implem
 
 ## 🏗️ **Architecture Overview**
 
-### **Hybrid Wine Data Sources**
-- **🥇 Primary**: Curated local wine database (`wineDatabase.json`) with detailed wine information
-- **🥈 Fallback**: SampleAPIs wine database for extended coverage when local data is unavailable
-- **🔄 Smart Logic**: Automatically searches local database first, falls back to API only when needed
-
-### **Two Complete Implementations**
+### **Wine Data Source**
+- **Primary**: Curated local wine database (`wineDatabase.json`) with detailed wine information
 
 #### **🐍 Python Implementation (Current/Production)**
 - **Status**: ✅ **Production Ready & Deployed**
 - **Runtime**: Python 3.11 on AWS Lambda
 - **Framework**: ASK SDK for Python v3
-- **Features**: Hybrid data sources, Bedrock NLG summaries, optional OpenSearch and vector search, enhanced error handling, comprehensive testing
+- **Features**: Local curated data source, Bedrock NLG summaries, optional vector/OpenSearch search, enhanced error handling, comprehensive testing
 
-#### **🟨 Node.js Implementation (Legacy/Reference)**
-- **Status**: 🔄 **Modernized & Preserved**
-- **Runtime**: Node.js 18.x
-- **Framework**: ASK SDK for Node.js v2
-- **Features**: Security fixes, modular architecture, environment variables
+<!-- Node.js legacy removed from active docs -->
 
 ## 🚀 **Production Deployment Status**
 
@@ -49,18 +41,10 @@ This project showcases a **complete migration** from the original Node.js implem
 ├── serverless-python.yml      # Serverless deployment config (optional)
 ├── deploy.py                  # One-shot zip + Lambda update script (recommended)
 ├── test_wine_skill.py         # Comprehensive test suite (25 tests)
-└── README-python.md           # Python-specific documentation
+└── README.md                  # This document (Python-only)
 ```
 
-### **Node.js Implementation Files (Legacy/Reference)**
-```
-├── index.js                   # Main skill handlers (modernized)
-├── wineService.js            # Wine data service
-├── utils.js                  # Utility functions
-├── config.js                 # Configuration management
-├── package.json              # Node.js dependencies
-└── serverless.yml            # Original deployment config
-```
+<!-- Node.js file list removed -->
 
 ### **Shared Resources**
 ```
@@ -74,10 +58,9 @@ This project showcases a **complete migration** from the original Node.js implem
 ### **Prerequisites**
 - AWS Account with Lambda and Alexa Skills Kit permissions
 - Alexa Developer Console account
-- Node.js 18+ (for Node.js version)
-- Python 3.9+ (for Python version)
-- Serverless Framework CLI
+- Python 3.11+
 - AWS CLI configured
+- Serverless Framework CLI (optional; `deploy.py` is preferred)
 
 ### **Python Version Setup (Recommended)**
 
@@ -89,7 +72,7 @@ This project showcases a **complete migration** from the original Node.js implem
 2. **Configure Environment**
    ```bash
    cp .env.example .env
-   # Edit .env with your Alexa Skill ID
+   # Edit .env with your values (see Environment Variables below)
    ```
 
 3. **Deploy to AWS Lambda**
@@ -106,17 +89,7 @@ This project showcases a **complete migration** from the original Node.js implem
    python -m pytest test_wine_skill.py -v
    ```
 
-### **Node.js Version Setup (Legacy)**
-
-1. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Deploy to AWS Lambda**
-   ```bash
-   serverless deploy
-   ```
+<!-- Legacy Node.js setup removed -->
 
 ## 🧪 **Testing**
 
@@ -128,10 +101,10 @@ This project showcases a **complete migration** from the original Node.js implem
 ### **Lambda Function Testing**
 ```bash
 # Test LaunchRequest
-aws lambda invoke --function-name alexa-wine-skill-python-dev-alexaSkill --payload file://test_launch.json response.json
+aws lambda invoke --function-name alexa-wine-skill-python --payload file://test_launch.json response.json
 
 # Test Wine Search
-aws lambda invoke --function-name alexa-wine-skill-python-dev-alexaSkill --payload file://test_wine_search.json response.json
+aws lambda invoke --function-name alexa-wine-skill-python --payload file://test_wine_search.json response.json
 ```
 
 ## 🔒 **Security & Best Practices**
@@ -150,17 +123,12 @@ aws lambda invoke --function-name alexa-wine-skill-python-dev-alexaSkill --paylo
 - **Type Hints**: Python implementation uses type annotations
 - **Documentation**: Comprehensive inline documentation
 
-## 🍷 **Wine Data Sources**
+## 🍷 **Wine Data Source**
 
-### **Primary: Local Curated Database**
+### **Local Curated Database**
 - **File**: `wineDatabase.json`
 - **Content**: High-quality wine data with ratings, descriptions, pairings
-- **Benefits**: Reliable, fast, no API dependencies
-
-### **Fallback: SampleAPIs**
-- **Endpoints**: Multiple wine type endpoints (reds, whites, sparkling, etc.)
-- **Benefits**: Extended coverage, no API keys required, free
-- **Usage**: Only when local database doesn't have matching wines
+- **Benefits**: Reliable, fast, no external API dependencies
 
 ## 📚 **References**
 
@@ -203,7 +171,7 @@ DOI: https://doi.org/10.3390/ai7010020
 
 ### **Phase 2: Python Migration**
 - ✅ Complete rewrite in Python using ASK SDK v3
-- ✅ Hybrid wine data architecture implementation
+- ✅ Local curated data source implementation
 - ✅ Comprehensive test suite with pytest
 - ✅ Production deployment to AWS Lambda
 - ✅ Full feature parity verification
@@ -211,12 +179,11 @@ DOI: https://doi.org/10.3390/ai7010020
 
 ## 🚀 **Production Status**
 
-- **Environment**: AWS Lambda (us-east-1)
+- **Environment**: AWS Lambda (us-west-2)
 - **Status**: ✅ **Live and Operational**
 - **Last Deployment**: Successfully tested and verified
 - **Monitoring**: CloudWatch logs available
 - **Performance**: Sub-second response times
-- **Reliability**: Hybrid data sources ensure high availability
 
 ## 📝 **Version History**
 
@@ -225,13 +192,60 @@ DOI: https://doi.org/10.3390/ai7010020
 - **v1.0.1** - Improved logging
 - **v1.0.0** - Initial Node.js implementation
 
-## 🤝 **Contributing**
+## ⚙️ Environment Variables
 
-This project demonstrates a complete migration from Node.js to Python for Alexa Skills. Both implementations are maintained for reference and comparison.
+Add these to `.env` as needed:
 
-## 📄 **License**
+```env
+# Alexa Skill / AWS
+ALEXA_SKILL_ID=your_skill_id
+AWS_REGION=us-west-2
+LOG_LEVEL=info
 
-This project is available for educational and reference purposes.
+# Optional: OpenSearch + Vector Search
+USE_OPENSEARCH=false
+OPENSEARCH_ENDPOINT=https://your-domain
+OPENSEARCH_INDEX=xwines-vec-768-1k
+OPENSEARCH_USE_IAM=true
+USE_VECTOR_SEARCH=false
+USE_HYBRID_SEARCH=false
+
+# Optional: Local embeddings via Ollama (for query-time vectors)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EMBED_MODEL=nomic-embed-text
+```
+
+## OpenSearch Integration (BM25, Vector, Hybrid)
+
+- Prereqs:
+  - OpenSearch index with knn_vector field `embedding` (dim 768)
+  - Optional local Ollama for query embeddings
+- Notes:
+  - Enable IAM with `OPENSEARCH_USE_IAM=true` and ensure credentials are available
+  - Hybrid search merges BM25 + kNN; set `USE_VECTOR_SEARCH=false` to use BM25 only
+
+## Data Ingestion with Embeddings
+
+Use `ingest_xwines_vectors.py` to create the index and ingest wines with embeddings:
+
+```bash
+python ingest_xwines_vectors.py --csv /path/to/XWines_Slim_1K_wines.csv --index xwines-vec-768-1k --chunk-size 200
+```
+
+## Usage Examples (Voice)
+
+- "Alexa, open Wine Assistant"
+- "Find a Pinot Noir"
+- "What's the price of this wine?"
+- "Tell me about the rating"
+- "Where is this wine from?"
+- "Next wine"
+- "Previous wine"
+- "Start over"
+
+## 📄 License
+
+MIT
 
 ---
 
