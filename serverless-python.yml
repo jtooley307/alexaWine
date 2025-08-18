@@ -11,6 +11,9 @@ provider:
     WINE_API_BASE_URL: ${env:WINE_API_BASE_URL, 'https://api.sampleapis.com/wines'}
     ALEXA_SKILL_ID: ${env:ALEXA_SKILL_ID}
     LOG_LEVEL: ${env:LOG_LEVEL, 'info'}
+    # Enable DynamoDB-backed search via environment flags
+    USE_DYNAMODB: ${env:USE_DYNAMODB, 'false'}
+    DYNAMODB_TABLE_PREFIX: ${env:DYNAMODB_TABLE_PREFIX, 'wine_skill_'}
   
   iamRoleStatements:
     - Effect: Allow
@@ -19,6 +22,10 @@ provider:
         - logs:CreateLogStream
         - logs:PutLogEvents
       Resource: "arn:aws:logs:*:*:*"
+    - Effect: Allow
+      Action:
+        - bedrock:InvokeModel
+      Resource: "*"
 
 functions:
   alexaSkill:
@@ -34,6 +41,7 @@ functions:
         - utils.py
         - wine_service.py
         - wine_api_service.py
+        - wine_dynamodb_service.py
         - wineDatabase.json
         - .env
       exclude:

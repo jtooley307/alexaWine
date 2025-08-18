@@ -1,0 +1,1 @@
+{ "version":"1.0", "session":{}, "context":{}, "request":{ "type":"IntentRequest", "intent":{ "name":"WineSearchIntent", "slots":{ "Wine":{ "name":"Wine", "value":"a bold red with blackberry flavors" } } } } }

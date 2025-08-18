@@ -17,9 +17,9 @@ This project showcases a **complete migration** from the original Node.js implem
 
 #### **🐍 Python Implementation (Current/Production)**
 - **Status**: ✅ **Production Ready & Deployed**
-- **Runtime**: Python 3.9 on AWS Lambda
+- **Runtime**: Python 3.11 on AWS Lambda
 - **Framework**: ASK SDK for Python v3
-- **Features**: Hybrid data sources, enhanced error handling, comprehensive testing
+- **Features**: Hybrid data sources, Bedrock NLG summaries, optional OpenSearch and vector search, enhanced error handling, comprehensive testing
 
 #### **🟨 Node.js Implementation (Legacy/Reference)**
 - **Status**: 🔄 **Modernized & Preserved**
@@ -30,12 +30,11 @@ This project showcases a **complete migration** from the original Node.js implem
 ## 🚀 **Production Deployment Status**
 
 ### **AWS Lambda Function**
-- **Function Name**: `alexa-wine-skill-python-dev-alexaSkill`
-- **Runtime**: Python 3.9
-- **Region**: us-east-1
-- **Size**: 2.05 MB (with all dependencies)
+- **Function Name**: `alexa-wine-skill-python`
+- **Runtime**: Python 3.11
+- **Region**: us-west-2
 - **Status**: ✅ **Active and Fully Functional**
-- **Last Tested**: Successfully verified with LaunchRequest and WineSearchIntent
+- **Last Deployed**: See CloudWatch logs for `$LATEST` version updates
 
 ## 📁 **Project Structure**
 
@@ -47,12 +46,13 @@ This project showcases a **complete migration** from the original Node.js implem
 ├── config.py                  # Environment configuration
 ├── utils.py                   # Validation, logging, session utilities
 ├── requirements.txt           # Python dependencies
-├── serverless-python.yml      # Serverless deployment config
+├── serverless-python.yml      # Serverless deployment config (optional)
+├── deploy.py                  # One-shot zip + Lambda update script (recommended)
 ├── test_wine_skill.py         # Comprehensive test suite (25 tests)
 └── README-python.md           # Python-specific documentation
 ```
 
-### **Node.js Implementation Files**
+### **Node.js Implementation Files (Legacy/Reference)**
 ```
 ├── index.js                   # Main skill handlers (modernized)
 ├── wineService.js            # Wine data service
@@ -94,12 +94,11 @@ This project showcases a **complete migration** from the original Node.js implem
 
 3. **Deploy to AWS Lambda**
    ```bash
-   # Using Serverless Framework
-   serverless deploy --config serverless-python.yml
-   
-   # Or using deployment script
-   python3 create_deployment_package.py
-   aws lambda update-function-code --function-name your-function-name --zip-file fileb://alexa-wine-skill-python-with-deps.zip
+   # Preferred: simple deploy script that zips and updates the Lambda code
+   python3 deploy.py
+
+   # Optional: using Serverless Framework instead of deploy.py
+   # serverless deploy --config serverless-python.yml
    ```
 
 4. **Run Tests**
@@ -162,6 +161,19 @@ aws lambda invoke --function-name alexa-wine-skill-python-dev-alexaSkill --paylo
 - **Endpoints**: Multiple wine type endpoints (reds, whites, sparkling, etc.)
 - **Benefits**: Extended coverage, no API keys required, free
 - **Usage**: Only when local database doesn't have matching wines
+
+## 📚 **References**
+
+This project utilizes the X-Wines dataset for wine recommendations. When using this dataset in production, please cite the following paper:
+
+```
+RecSys-DAN: A Comprehensive Dataset for Research on Recommendation Systems with Deep Learning
+Authors: [Authors]
+Journal: AI, 2023, 7(1), 20
+DOI: https://doi.org/10.3390/ai7010020
+```
+
+[Read the full paper here](https://www.mdpi.com/2504-2289/7/1/20)
 
 ## 📊 **Features**
 

@@ -107,6 +107,37 @@ serverless deploy --config serverless-python.yml
 serverless deploy --config serverless-python.yml --stage prod
 ```
 
+## OpenSearch Integration (BM25, Vector, Hybrid)
+
+- __Prereqs__:
+  - OpenSearch domain and index (e.g., `xwines-vec-768-1k`) with `knn_vector` field `embedding` of dim 768.
+  - Local Ollama running with `nomic-embed-text` for query-time embeddings.
+
+- __.env settings__:
+  - `OPENSEARCH_ENDPOINT=https://<your-domain>`
+  - `OPENSEARCH_INDEX=xwines-vec-768-1k`
+  - `OPENSEARCH_USE_IAM=true` (recommended)
+  - `USE_OPENSEARCH=true`
+  - `USE_VECTOR_SEARCH=true` to enable kNN
+  - `USE_HYBRID_SEARCH=true` to fuse BM25 + kNN (reciprocal rank)
+  - `OLLAMA_BASE_URL=http://localhost:11434`
+  - `OLLAMA_EMBED_MODEL=nomic-embed-text`
+
+- __Notes__:
+  - With IAM enabled, ensure AWS credentials are available to the process (ENV/Sso/Instance profile).
+  - Hybrid search runs BM25 and kNN, merging results for improved relevance.
+  - Set `USE_VECTOR_SEARCH=false` to fall back to BM25 only.
+
+## Data Ingestion with Embeddings
+
+Use `ingest_xwines_vectors.py` to create the index and bulk-ingest wines with embeddings:
+
+```bash
+python ingest_xwines_vectors.py --csv /path/to/XWines_Slim_1K_wines.csv --index xwines-vec-768-1k --chunk-size 200
+```
+
+The script supports the slim CSV schema (e.g., `WineID`, `WineName`, `WineryName`, `RegionName`, `Grapes`, `Harmonize`, `ABV`).
+
 ## Usage Examples
 
 ### Voice Commands

@@ -1,50 +1,249 @@
 """
-Wine API Service Module
-Uses local wine database as primary source with SampleAPIs as fallback
+Wine Data Service Module
+Provides local database search with simple filtering and caching.
+External APIs removed.
 """
 
-import requests
 import json
 import os
 import time
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Tuple
 from config import config
 from utils import logger_util
 
 class WineAPIService:
     """
-    Two-tier wine data service:
-    1. Primary: Local curated wine database (wineDatabase.json)
-    2. Fallback: SampleAPIs for additional wine data
+    Wine data service backed by a curated local JSON database (wineDatabase.json).
+    Caches results for a short duration.
     """
     
     def __init__(self):
-        """Initialize the wine API service with local database and SampleAPIs fallback"""
+        """Initialize the wine data service with local database backend"""
         self.cache = {}
-        self.cache_timeout = 300  # 5 minutes
+        self.cache_timeout = 3600  # 1 hour cache for API responses
         self.wine_database = None
         self.load_local_database()
+        logger_util.info('Wine API Service initialized with local database backend')
+    
+    def _get_from_cache(self, key: str) -> Any:
+        """
+        Get a value from the cache if it exists and hasn't expired
         
-        # SampleAPIs endpoints (fallback)
-        self.sample_apis = {
-            'reds': 'https://api.sampleapis.com/wines/reds',
-            'whites': 'https://api.sampleapis.com/wines/whites',
-            'sparkling': 'https://api.sampleapis.com/wines/sparkling',
-            'rose': 'https://api.sampleapis.com/wines/rose',
-            'dessert': 'https://api.sampleapis.com/wines/dessert',
-            'port': 'https://api.sampleapis.com/wines/port'
+        Args:
+            key: The cache key to look up
+            
+        Returns:
+            The cached value or None if not found or expired
+        """
+        if key in self.cache:
+            cached = self.cache[key]
+            if time.time() - cached['timestamp'] < self.cache_timeout:
+                return cached['value']
+        return None
+    
+    # External API integrations removed
+    
+    def _search_local_database(self, search_term: str, filters: Optional[Dict] = None) -> List[Dict]:
+        """
+        Search the local wine database with case-insensitive matching
+        
+        Args:
+            search_term: The search term to look for in wine names, types, etc.
+            filters: Optional filters to apply to the search
+            
+        Returns:
+            List of matching wine dictionaries
+        """
+        if not self.wine_database or not self.wine_database.get('wines'):
+            logger_util.warning("No wine database loaded or empty database")
+            return []
+            
+        search_terms = [term.lower().strip() for term in search_term.split()]
+        results = []
+        
+        logger_util.debug(f"Searching through {len(self.wine_database['wines'])} wines")
+        
+        # Print sample wine names for debugging
+        sample_wines = self.wine_database['wines'][:3]
+        logger_util.debug("Sample wine names:")
+        for i, wine in enumerate(sample_wines, 1):
+            logger_util.debug(f"  {i}. {wine.get('name')} ({wine.get('type')})")
+        
+        for wine in self.wine_database['wines']:
+            wine_name = str(wine.get('name', '')).lower()
+            wine_type = str(wine.get('type', '')).lower()
+            
+            # Check if any search term matches the wine name or type
+            match = any(term in wine_name or term in wine_type for term in search_terms)
+            
+            if match:
+                logger_util.debug(f"Found matching wine: {wine_name}")
+                normalized_wine = self._normalize_local_wine_data(wine)
+                if self._wine_matches_filters(normalized_wine, filters):
+                    results.append(normalized_wine)
+        
+        logger_util.debug(f"_search_local_database found {len(results)} results")
+        return results
+    
+    # Old Spoonacular-first search removed; use the version below that prefers local DB then SampleAPIs
+    
+    def _wine_matches_filters(self, wine: Dict, filters: Optional[Dict] = None) -> bool:
+        """
+        Check if a wine matches the given filters
+        
+        Args:
+            wine: The wine to check
+            filters: Optional filters to apply (e.g., {'type': 'red', 'min_rating': 4})
+            
+        Returns:
+            bool: True if the wine matches all filters, False otherwise
+        """
+        if not filters:
+            return True
+            
+        wine_type = str(wine.get('type', '')).lower()
+        try:
+            wine_rating = float(wine.get('rating', 0))
+        except (TypeError, ValueError):
+            wine_rating = 0
+            
+        logger_util.debug(f"Checking filters for wine: {wine.get('name')}")
+        logger_util.debug(f"Wine type: {wine_type}, Rating: {wine_rating}")
+            
+        # Check wine type filter
+        if 'type' in filters and filters['type']:
+            filter_type = str(filters['type']).lower()
+            if filter_type not in wine_type:
+                logger_util.debug(f"Wine type filter failed: {filter_type} not in {wine_type}")
+                return False
+            
+        # Check minimum rating filter
+        if 'min_rating' in filters and filters['min_rating'] is not None:
+            try:
+                min_rating = float(filters['min_rating'])
+                if wine_rating < min_rating:
+                    logger_util.debug(f"Rating filter failed: {wine_rating} < {min_rating}")
+                    return False
+            except (TypeError, ValueError):
+                logger_util.warning(f"Invalid min_rating filter value: {filters['min_rating']}")
+                
+        # Check price range filter
+        if 'max_price' in filters and filters['max_price'] is not None:
+            try:
+                wine_price = float(wine.get('price', float('inf')))
+                max_price = float(filters['max_price'])
+                if wine_price > max_price:
+                    logger_util.debug(f"Price filter failed: {wine_price} > {max_price}")
+                    return False
+            except (TypeError, ValueError):
+                logger_util.warning(f"Invalid max_price filter value: {filters['max_price']}")
+                
+        # Check region filter
+        if 'region' in filters and filters['region']:
+            region = str(wine.get('region', '')).lower()
+            filter_region = str(filters['region']).lower()
+            if filter_region not in region:
+                logger_util.debug(f"Region filter failed: {filter_region} not in {region}")
+                return False
+                
+        logger_util.debug(f"Wine matches all filters: {wine.get('name')}")
+        return True
+    
+    def _normalize_local_wine_data(self, wine_data: Dict) -> Dict:
+        """
+        Normalize wine data from local database to match the expected format
+        
+        Args:
+            wine_data: Raw wine data from local database
+            
+        Returns:
+            Normalized wine data with consistent structure
+        """
+        if not wine_data:
+            return {}
+            
+        # Extract basic wine information from the database fields
+        wine = {
+            'name': wine_data.get('name', 'Unknown Wine'),
+            'type': wine_data.get('type', 'Unknown Type'),
+            'winery': wine_data.get('winery', 'Unknown Winery'),
+            'region': wine_data.get('region', 'Unknown Region'),
+            'country': wine_data.get('country', 'Unknown Country'),
+            'price': wine_data.get('price'),
+            'rating': wine_data.get('rating'),
+            'description': wine_data.get('description', 'No description available.'),
+            'vintage': wine_data.get('vintage'),
+            'alcohol_content': wine_data.get('alcohol'),
+            'alcohol': wine_data.get('alcohol'),  # Keep both for backward compatibility
+            'pairings': wine_data.get('pairings', []),
+            'source': 'local_database',
+            'raw_data': wine_data
         }
         
-        logger_util.info('Wine API Service initialized with local database + SampleAPIs fallback')
+        # Add image URL if available (not in the current database but keeping for future use)
+        if 'image_url' in wine_data:
+            wine['image_url'] = wine_data['image_url']
+        
+        logger_util.debug(f"Normalized wine data: {json.dumps(wine, indent=2, default=str)}")
+        return wine
+    
+    def _set_in_cache(self, key: str, value: Any) -> None:
+        """
+        Store a value in the cache
+        
+        Args:
+            key: The cache key
+            value: The value to cache
+        """
+        self.cache[key] = {
+            'value': value,
+            'timestamp': time.time()
+        }
+    
+    # Alias for _set_in_cache for backward compatibility
+    def _add_to_cache(self, key: str, value: Any) -> None:
+        """
+        Alias for _set_in_cache for backward compatibility
+        
+        Args:
+            key: The cache key
+            value: The value to cache
+        """
+        self._set_in_cache(key, value)
     
     def load_local_database(self) -> None:
         """Load wine database from local JSON file"""
         try:
-            db_path = os.path.join(os.path.dirname(__file__), 'wineDatabase.json')
-            with open(db_path, 'r', encoding='utf-8') as file:
-                self.wine_database = json.load(file)
+            # Try multiple possible locations for the database file
+            possible_paths = [
+                os.path.join(os.path.dirname(__file__), 'wineDatabase.json'),  # Local development
+                os.path.join(os.getcwd(), 'wineDatabase.json'),  # Lambda environment
+                '/var/task/wineDatabase.json',  # AWS Lambda default deployment path
+                '/tmp/wineDatabase.json'  # Lambda /tmp directory
+            ]
+            
+            self.wine_database = None
+            loaded_path = None
+            
+            for db_path in possible_paths:
+                try:
+                    logger_util.info(f"Attempting to load wine database from: {db_path}")
+                    with open(db_path, 'r', encoding='utf-8') as file:
+                        self.wine_database = json.load(file)
+                    loaded_path = db_path
+                    break
+                except (FileNotFoundError, json.JSONDecodeError) as e:
+                    logger_util.warning(f"Failed to load database from {db_path}: {str(e)}")
+                    continue
+            
+            if not self.wine_database:
+                logger_util.error("Failed to load wine database from any known location")
+                # Initialize with empty database structure to prevent errors
+                self.wine_database = {'wines': []}
+                return
             
             logger_util.info('Local wine database loaded successfully', {
+                'path': loaded_path,
                 'total_wines': len(self.wine_database.get('wines', [])),
                 'version': self.wine_database.get('metadata', {}).get('version', 'unknown')
             })
@@ -54,133 +253,28 @@ class WineAPIService:
     
     def search_wines(self, search_term: str, filters: Optional[Dict] = None) -> List[Dict]:
         """
-        Search for wines using two-tier approach:
-        1. Local database (primary)
-        2. SampleAPIs (fallback)
-        
-        Args:
-            search_term: Wine name, type, region, or winery
-            filters: Optional filters (type, region, price_range, etc.)
-            
-        Returns:
-            List of matching wines
+        Search for wines in the local database with optional filters.
         """
+        if not search_term:
+            return []
+        search_term = search_term.lower().strip()
+        cache_key = f"{search_term}:{json.dumps(filters or {})}"
+        cached_result = self._get_from_cache(cache_key)
+        if cached_result is not None:
+            return cached_result
         try:
-            # Tier 1: Search local database first
-            local_results = self._search_local_database(search_term, filters)
-            
-            if local_results:
-                logger_util.info(f'Found {len(local_results)} wines in local database')
-                return local_results[:config.WINE_API_MAX_RESULTS]
-            
-            # Tier 2: Fall back to SampleAPIs
-            logger_util.info('No local results found, trying SampleAPIs fallback')
-            api_results = self._search_sample_apis(search_term, filters)
-            
-            if api_results:
-                logger_util.info(f'Found {len(api_results)} wines from SampleAPIs')
-                return api_results[:config.WINE_API_MAX_RESULTS]
-            
-            logger_util.warning('No wines found in local database or SampleAPIs')
+            results = self._search_local_database(search_term, filters)
+            if results:
+                self._add_to_cache(cache_key, results)
+            return results
+        except Exception as e:
+            logger_util.error(f"Error searching wines: {str(e)}")
             return []
             
-        except Exception as error:
-            logger_util.error('Wine search failed', error)
-            return []
+    # Remove noisy duplicate debug-heavy local search; keep the version above
+    # (Function removed)
     
-    def _search_local_database(self, search_term: str, filters: Optional[Dict] = None) -> List[Dict]:
-        """Search the local wine database"""
-        if not self.wine_database or not self.wine_database.get('wines'):
-            return []
-        
-        clean_search_term = search_term.strip().lower()
-        results = []
-        
-        for wine in self.wine_database['wines']:
-            # Search in multiple fields
-            search_fields = [
-                wine.get('name', '').lower(),
-                wine.get('winery', '').lower(),
-                wine.get('type', '').lower(),
-                wine.get('region', '').lower(),
-                wine.get('country', '').lower(),
-                wine.get('description', '').lower()
-            ]
-            
-            # Check if search term matches any field
-            if any(clean_search_term in field for field in search_fields):
-                # Apply filters if provided
-                if self._wine_matches_filters(wine, filters):
-                    # Normalize wine data format
-                    normalized_wine = self._normalize_local_wine_data(wine)
-                    results.append(normalized_wine)
-        
-        # Sort by relevance (exact matches first, then by rating)
-        results.sort(key=lambda w: (
-            -(w.get('name', '').lower() == clean_search_term or w.get('type', '').lower() == clean_search_term),
-            -w.get('rating', 0)
-        ))
-        
-        return results
-    
-    def _search_sample_apis(self, search_term: str, filters: Optional[Dict] = None) -> List[Dict]:
-        """Search SampleAPIs as fallback"""
-        all_results = []
-        
-        # Determine which endpoints to search based on wine type filter
-        endpoints_to_search = self.sample_apis.values()
-        if filters and filters.get('type'):
-            wine_type = filters['type'].lower()
-            if wine_type in self.sample_apis:
-                endpoints_to_search = [self.sample_apis[wine_type]]
-        
-        for endpoint in endpoints_to_search:
-            try:
-                # Check cache first
-                cache_key = f"{endpoint}_{search_term}_{str(filters)}"
-                if cache_key in self.cache:
-                    cache_entry = self.cache[cache_key]
-                    if time.time() - cache_entry['timestamp'] < self.cache_timeout:
-                        all_results.extend(cache_entry['data'])
-                        continue
-                
-                # Make API request
-                response = requests.get(endpoint, timeout=config.WINE_API_TIMEOUT)
-                response.raise_for_status()
-                wines = response.json()
-                
-                # Filter results
-                filtered_wines = []
-                clean_search_term = search_term.strip().lower()
-                
-                for wine in wines:
-                    if isinstance(wine, dict):
-                        # Check if wine matches search term
-                        wine_name = wine.get('wine', wine.get('name', '')).lower()
-                        wine_winery = wine.get('winery', '').lower()
-                        
-                        if (clean_search_term in wine_name or 
-                            clean_search_term in wine_winery or
-                            clean_search_term in wine.get('location', '').lower()):
-                            
-                            # Apply additional filters
-                            if self._api_wine_matches_filters(wine, filters):
-                                normalized_wine = self._normalize_api_wine_data(wine)
-                                filtered_wines.append(normalized_wine)
-                
-                # Cache results
-                self.cache[cache_key] = {
-                    'data': filtered_wines,
-                    'timestamp': time.time()
-                }
-                
-                all_results.extend(filtered_wines)
-                
-            except Exception as error:
-                logger_util.warning(f'SampleAPI request failed for {endpoint}', error)
-                continue
-        
-        return all_results
+    # SampleAPIs search removed
     
     def _wine_matches_filters(self, wine: Dict, filters: Optional[Dict]) -> bool:
         """Check if local database wine matches filters"""
@@ -207,18 +301,7 @@ class WineAPIService:
         
         return True
     
-    def _api_wine_matches_filters(self, wine: Dict, filters: Optional[Dict]) -> bool:
-        """Check if SampleAPI wine matches filters"""
-        if not filters:
-            return True
-        
-        # Basic filtering for API wines (limited data available)
-        if filters.get('region'):
-            location = wine.get('location', '').lower()
-            if filters['region'].lower() not in location:
-                return False
-        
-        return True
+    # SampleAPI helper removed
     
     def _normalize_local_wine_data(self, wine: Dict) -> Dict:
         """Normalize local database wine data to standard format"""
@@ -238,20 +321,4 @@ class WineAPIService:
             'Source': 'local_database'
         }
     
-    def _normalize_api_wine_data(self, wine: Dict) -> Dict:
-        """Normalize SampleAPI wine data to standard format"""
-        return {
-            'Name': wine.get('wine', wine.get('name', 'Unknown Wine')),
-            'Winery': wine.get('winery', 'Unknown Winery'),
-            'Type': wine.get('type', 'Unknown Type'),
-            'Region': wine.get('location', 'Unknown Region'),
-            'Country': wine.get('location', '').split(',')[-1].strip() if wine.get('location') else 'Unknown Country',
-            'Price': 0,  # SampleAPIs doesn't provide pricing
-            'Rating': wine.get('rating', {}).get('average', 0) if isinstance(wine.get('rating'), dict) else 0,
-            'Description': f"A wine from {wine.get('winery', 'Unknown Winery')} in {wine.get('location', 'Unknown Region')}",
-            'Pairings': [],  # Not available in SampleAPIs
-            'Occasions': [],  # Not available in SampleAPIs
-            'Vintage': 'N/A',  # Not available in SampleAPIs
-            'AlcoholContent': 'N/A',  # Not available in SampleAPIs
-            'Source': 'sample_apis'
-        }
+    # SampleAPI normalization removed

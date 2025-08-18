@@ -24,7 +24,12 @@ class Logger:
         """Log info message with optional data"""
         if config.LOG_LEVEL in ['info', 'debug']:
             if data:
-                logger.info(f"{message}: {json.dumps(data)}")
+                try:
+                    logger.info(f"{message}: {json.dumps(data, default=str)}")
+                except Exception:
+                    # Fallback: stringify dict items defensively
+                    safe = {str(k): str(v) for k, v in data.items()}
+                    logger.info(f"{message}: {json.dumps(safe)}")
             else:
                 logger.info(message)
     
@@ -41,7 +46,11 @@ class Logger:
         """Log debug message with optional data"""
         if config.LOG_LEVEL == 'debug':
             if data:
-                logger.debug(f"{message}: {json.dumps(data)}")
+                try:
+                    logger.debug(f"{message}: {json.dumps(data, default=str)}")
+                except Exception:
+                    safe = {str(k): str(v) for k, v in data.items()}
+                    logger.debug(f"{message}: {json.dumps(safe)}")
             else:
                 logger.debug(message)
 

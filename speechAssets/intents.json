@@ -2,158 +2,30 @@
   "intents": [
     { "intent": "AMAZON.HelpIntent", "slots": [] },
     { "intent": "AMAZON.StopIntent", "slots": [] },
-    { "intent": "AMAZON.RepeatIntent", "slots": [] },
     { "intent": "AMAZON.CancelIntent", "slots": [] },
+    { "intent": "AMAZON.RepeatIntent", "slots": [] },
     { "intent": "AMAZON.StartOverIntent", "slots": [] },
     { "intent": "AMAZON.YesIntent", "slots": [] },
     { "intent": "AMAZON.NoIntent", "slots": [] },
     { "intent": "AMAZON.NextIntent", "slots": [] },
     { "intent": "AMAZON.PreviousIntent", "slots": [] },
-    { "intent": "AMAZON.ResumeIntent", "slots": [] },
     { "intent": "AMAZON.PauseIntent", "slots": [] },
-    { 
-      "intent": "wineSearchIntent", 
+    { "intent": "AMAZON.ResumeIntent", "slots": [] },
+
+    {
+      "intent": "wineSearchIntent",
       "slots": [
-        { "name": "Wine", "type": "LIST_OF_WINES" },
-        { "name": "Winery", "type": "LIST_OF_WINERY" },
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "Region", "type": "WINE_REGIONS" },
-        { "name": "Vintage", "type": "AMAZON.FOUR_DIGIT_NUMBER" },
-        { "name": "Date", "type": "AMAZON.DATE" }
-      ]
-    },
-    { 
-      "intent": "getWineDetailsIntent", 
-      "slots": [
-        { "name": "Action", "type": "LIST_OF_ACTIONS" }, 
-        { "name": "ActionTwo", "type": "LIST_OF_ACTIONS" }
-      ]
-    },
-    { 
-      "intent": "wineActionDetailIntent", 
-      "slots": [
-        { "name": "Action", "type": "LIST_OF_ACTIONS" }
+        { "name": "Query", "type": "AMAZON.SearchQuery" }
       ]
     },
     {
-      "intent": "searchByWineTypeIntent",
-      "slots": [
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "Region", "type": "WINE_REGIONS" },
-        { "name": "PriceRange", "type": "PRICE_RANGES" }
-      ]
-    },
-    {
-      "intent": "searchByWineryIntent",
-      "slots": [
-        { "name": "Winery", "type": "LIST_OF_WINERY" },
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "Vintage", "type": "AMAZON.FOUR_DIGIT_NUMBER" }
-      ]
-    },
-    {
-      "intent": "searchByRegionIntent",
-      "slots": [
-        { "name": "Region", "type": "WINE_REGIONS" },
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "PriceRange", "type": "PRICE_RANGES" }
-      ]
-    },
-    {
-      "intent": "searchByPriceIntent",
-      "slots": [
-        { "name": "PriceRange", "type": "PRICE_RANGES" },
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "MaxPrice", "type": "AMAZON.NUMBER" },
-        { "name": "MinPrice", "type": "AMAZON.NUMBER" }
-      ]
-    },
-    {
-      "intent": "searchByRatingIntent",
-      "slots": [
-        { "name": "MinRating", "type": "AMAZON.NUMBER" },
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "Region", "type": "WINE_REGIONS" }
-      ]
-    },
-    {
-      "intent": "searchByVintageIntent",
-      "slots": [
-        { "name": "Vintage", "type": "AMAZON.FOUR_DIGIT_NUMBER" },
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "Winery", "type": "LIST_OF_WINERY" }
-      ]
-    },
-    {
-      "intent": "winePairingIntent",
-      "slots": [
-        { "name": "Food", "type": "FOOD_TYPES" },
-        { "name": "Occasion", "type": "OCCASIONS" },
-        { "name": "WineType", "type": "WINE_TYPES" }
-      ]
-    },
-    {
-      "intent": "wineRecommendationIntent",
-      "slots": [
-        { "name": "Occasion", "type": "OCCASIONS" },
-        { "name": "PriceRange", "type": "PRICE_RANGES" },
-        { "name": "WineType", "type": "WINE_TYPES" }
-      ]
-    },
-    {
-      "intent": "compareWinesIntent",
-      "slots": [
-        { "name": "WineOne", "type": "LIST_OF_WINES" },
-        { "name": "WineTwo", "type": "LIST_OF_WINES" },
-        { "name": "ComparisonType", "type": "LIST_OF_ACTIONS" }
-      ]
-    },
-    {
-      "intent": "learnAboutWineIntent",
-      "slots": [
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "Region", "type": "WINE_REGIONS" },
-        { "name": "Topic", "type": "WINE_TOPICS" }
-      ]
-    },
-    {
-      "intent": "addToFavoritesIntent",
-      "slots": [
-        { "name": "Wine", "type": "LIST_OF_WINES" }
-      ]
-    },
-    {
-      "intent": "showFavoritesIntent",
+      "intent": "getWineDetailsIntent",
       "slots": []
     },
-    {
-      "intent": "popularWinesIntent",
-      "slots": [
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "Region", "type": "WINE_REGIONS" },
-        { "name": "PriceRange", "type": "PRICE_RANGES" }
-      ]
-    },
-    {
-      "intent": "checkAvailabilityIntent",
-      "slots": [
-        { "name": "Wine", "type": "LIST_OF_WINES" }
-      ]
-    },
-    {
-      "intent": "filterWinesIntent",
-      "slots": [
-        { "name": "FilterType", "type": "FILTER_TYPES" },
-        { "name": "FilterValue", "type": "AMAZON.SearchQuery" },
-        { "name": "WineType", "type": "WINE_TYPES" }
-      ]
-    },
+
     {
       "intent": "surpriseMeIntent",
-      "slots": [
-        { "name": "WineType", "type": "WINE_TYPES" },
-        { "name": "PriceRange", "type": "PRICE_RANGES" }
-      ]
+      "slots": []
     }
   ]
 }

@@ -157,17 +157,6 @@ popularWinesIntent trending {WineType} from {Region}
 popularWinesIntent most popular {PriceRange} wines
 popularWinesIntent what's popular in {Region}
 
-checkAvailabilityIntent is {Wine} available
-checkAvailabilityIntent do you have {Wine}
-checkAvailabilityIntent can I get {Wine}
-checkAvailabilityIntent is {Wine} in stock
-checkAvailabilityIntent availability of {Wine}
-checkAvailabilityIntent where can I find {Wine}
-checkAvailabilityIntent can I buy {Wine}
-checkAvailabilityIntent is {Wine} for sale
-checkAvailabilityIntent do you carry {Wine}
-checkAvailabilityIntent stock check {Wine}
-
 filterWinesIntent filter {FilterType}
 filterWinesIntent show me wines {FilterType}
 filterWinesIntent filter by {FilterType}
@@ -190,33 +179,24 @@ surpriseMeIntent pick a {WineType}
 surpriseMeIntent something new
 surpriseMeIntent what do you suggest
 
-getWineDetailsIntent get {Action} details
-getWineDetailsIntent get details
-getWineDetailsIntent details
 getWineDetailsIntent tell me more
-getWineDetailsIntent tell me the {Action}
-getWineDetailsIntent more information
-getWineDetailsIntent full details
-getWineDetailsIntent everything about this wine
-getWineDetailsIntent complete information
-getWineDetailsIntent all details
-
-wineActionDetailIntent {Action}
-wineActionDetailIntent lookup {Action}
-wineActionDetailIntent what is the {Action}
-wineActionDetailIntent tell me the {Action}
-wineActionDetailIntent show me the {Action}
-wineActionDetailIntent what's the {Action}
-wineActionDetailIntent give me the {Action}
-wineActionDetailIntent {Action} information
-wineActionDetailIntent how much does it cost
-wineActionDetailIntent what's the price
-wineActionDetailIntent where is it from
-wineActionDetailIntent what's the rating
-wineActionDetailIntent tell me about this wine
-wineActionDetailIntent describe this wine
-wineActionDetailIntent wine details
-wineActionDetailIntent more about this wine
+getWineDetailsIntent provide a description
+getWineDetailsIntent what is this one
+getWineDetailsIntent what's this one
+getWineDetailsIntent what can you tell me about it
+getWineDetailsIntent more details
+getWineDetailsIntent more about it
+getWineDetailsIntent give me more
+getWineDetailsIntent describe this wine
+getWineDetailsIntent describe it
+getWineDetailsIntent read the description
+getWineDetailsIntent give me the description
+getWineDetailsIntent what does it taste like
+getWineDetailsIntent tasting notes
+getWineDetailsIntent flavor profile
+getWineDetailsIntent how is it
+getWineDetailsIntent what's it like
+getWineDetailsIntent tell me about this one
 
 AMAZON.CancelIntent done
 AMAZON.CancelIntent go back

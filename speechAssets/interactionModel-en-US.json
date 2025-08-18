@@ -1,0 +1,74 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "wine assistant",
+      "intents": [
+        { "name": "AMAZON.HelpIntent", "samples": [] },
+        { "name": "AMAZON.StopIntent", "samples": [] },
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.RepeatIntent", "samples": [] },
+        { "name": "AMAZON.StartOverIntent", "samples": [] },
+        { "name": "AMAZON.YesIntent", "samples": [] },
+        { "name": "AMAZON.NoIntent", "samples": [] },
+        { "name": "AMAZON.NextIntent", "samples": [] },
+        { "name": "AMAZON.PreviousIntent", "samples": [] },
+        { "name": "AMAZON.PauseIntent", "samples": [] },
+        { "name": "AMAZON.ResumeIntent", "samples": [] },
+
+        {
+          "name": "wineSearchIntent",
+          "slots": [
+            { "name": "Query", "type": "AMAZON.SearchQuery" }
+          ],
+          "samples": [
+            "find {Query}",
+            "search for {Query}",
+            "look up {Query}",
+            "tell me about {Query}",
+            "show me {Query}",
+            "I'm looking for {Query}",
+            "do you have {Query}",
+            "what about {Query}"
+          ]
+        },
+
+        {
+          "name": "getWineDetailsIntent",
+          "samples": [
+            "tell me more",
+            "provide a description",
+            "what is this one",
+            "what's this one",
+            "what can you tell me about it",
+            "more details",
+            "more about it",
+            "give me more",
+            "describe this wine",
+            "describe it",
+            "read the description",
+            "give me the description",
+            "what does it taste like",
+            "tasting notes",
+            "flavor profile",
+            "how is it",
+            "what's it like",
+            "tell me about this one"
+          ]
+        },
+
+        {
+          "name": "surpriseMeIntent",
+          "samples": [
+            "surprise me",
+            "random wine",
+            "pick something for me",
+            "dealer's choice",
+            "something different",
+            "what do you suggest"
+          ]
+        }
+      ],
+      "types": []
+    }
+  }
+}
