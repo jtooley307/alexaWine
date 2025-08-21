@@ -57,21 +57,52 @@ def load_wines(csv_path: Optional[str] = None) -> pd.DataFrame:
     raise FileNotFoundError("No wines data found. Provide --csv, or run setup_xwines_db.py, or place data/xwines/wines.csv")
 
 
+def _first(row: pd.Series, keys: list[str], default: str = ""):
+    for k in keys:
+        if k in row and pd.notna(row.get(k)):
+            return row.get(k)
+    return default
+
+
+def _normalize_listish(val):
+    """Normalize values like "['A','B']" or Python lists to a comma string."""
+    if val is None or (isinstance(val, float) and pd.isna(val)):
+        return ""
+    if isinstance(val, list):
+        return ", ".join([str(x) for x in val if x])
+    s = str(val)
+    if s.startswith("[") and s.endswith("]"):
+        try:
+            import ast
+            parsed = ast.literal_eval(s)
+            if isinstance(parsed, list):
+                return ", ".join([str(x) for x in parsed if x])
+        except Exception:
+            pass
+    return s
+
+
 def build_text(row: pd.Series) -> str:
-    parts = [
-        str(row.get("name", "")),
-        str(row.get("winery", "")),
-        str(row.get("type", "")),
-        str(row.get("region", "")),
-        str(row.get("country", "")),
-        str(row.get("description", "")),
-        str(row.get("body", "")),
-        str(row.get("acidity", "")),
-        str(row.get("sweetness", "")),
-        str(row.get("tannin", "")),
-        str(row.get("food_pairing", "")),
-    ]
-    return " | ".join([p for p in parts if p and p != "nan"]).strip()
+    """Builds the embedding text, ensuring wine name is included across schemas.
+
+    Supports both Slim and Full CSVs by checking multiple column aliases,
+    mirroring the ingestion script fields.
+    """
+    name = _first(row, ["name", "WineName"]) or ""
+    winery = _first(row, ["winery", "WineryName"]) or ""
+    wtype = _first(row, ["type", "Type"]) or ""
+    region = _first(row, ["region", "RegionName"]) or ""
+    country = _first(row, ["country", "Country"]) or ""
+    desc = _first(row, ["description", "Elaborate"]) or ""
+    body = _first(row, ["body", "Body"]) or ""
+    acidity = _first(row, ["acidity", "Acidity"]) or ""
+    sweetness = _first(row, ["sweetness"]) or ""
+    tannin = _first(row, ["tannin"]) or ""
+    food = _normalize_listish(_first(row, ["food_pairing", "Harmonize"]))
+    grapes = _normalize_listish(_first(row, ["Grapes"]))
+
+    parts = [name, winery, wtype, region, country, grapes, food, desc, body, acidity, sweetness, tannin]
+    return " | ".join([str(p) for p in parts if p and str(p) != "nan"]).strip()
 
 
 def embed_text(text: str) -> List[float]:
