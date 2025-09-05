@@ -251,3 +251,4 @@ MIT
 
 **🎯 Ready for Production**: The Python implementation is fully deployed and operational on AWS Lambda with comprehensive testing and monitoring in place.
  1.0    Jan-06-2017 first certified Alexa release
+# alexa-legal
