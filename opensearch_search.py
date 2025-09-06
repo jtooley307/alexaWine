@@ -64,22 +64,52 @@ def get_client() -> OpenSearch:
 
 
 def search_text(query: str, size: int = 5) -> List[Dict[str, Any]]:
-    """Simple BM25 text search against the xwines index.
+    """BM25 text search with boosted winery support and phrase-prefix for winery.
     Returns list of _source docs.
     """
     client = get_client()
+    qs = f"{query}*"
     body = {
         "size": size,
         "query": {
-            "multi_match": {
-                "query": query,
-                "fields": [
-                    "name^3",
-                    "winery",
-                    "type",
-                    "region",
-                    "country",
-                    "description"
+            "bool": {
+                "should": [
+                    {
+                        "multi_match": {
+                            "query": query,
+                            "fields": [
+                                "name^3",
+                                "winery^5",
+                                "region^5",
+                                "appellation^4",
+                                "subregion^3",
+                                "type",
+                                "country",
+                                "description"
+                            ]
+                        }
+                    },
+                    {
+                        "query_string": {
+                            "query": qs,
+                            "fields": ["winery^5"],
+                            "default_operator": "AND"
+                        }
+                    },
+                    {
+                        "query_string": {
+                            "query": qs,
+                            "fields": ["region^5"],
+                            "default_operator": "AND"
+                        }
+                    },
+                    {
+                        "query_string": {
+                            "query": qs,
+                            "fields": ["appellation^4"],
+                            "default_operator": "AND"
+                        }
+                    }
                 ]
             }
         }
@@ -334,20 +364,50 @@ def search_vector(query: str, k: int = 5, num_candidates: int = 100) -> List[Dic
 
 def _search_text_with_ids(query: str, size: int) -> List[Tuple[str, Dict[str, Any], float]]:
     client = get_client()
+    qs = f"{query}*"
     body = {
         "size": size,
         "query": {
-            "multi_match": {
-                "query": query,
-                "fields": [
-                    "name^3",
-                    "winery",
-                    "type",
-                    "region",
-                    "country",
-                    "description",
-                    "grapes",
-                    "food_pairing"
+            "bool": {
+                "should": [
+                    {
+                        "multi_match": {
+                            "query": query,
+                            "fields": [
+                                "name^3",
+                                "winery^5",
+                                "region^5",
+                                "appellation^4",
+                                "subregion^3",
+                                "type",
+                                "country",
+                                "description",
+                                "grapes",
+                                "food_pairing"
+                            ]
+                        }
+                    },
+                    {
+                        "query_string": {
+                            "query": qs,
+                            "fields": ["winery^5"],
+                            "default_operator": "AND"
+                        }
+                    },
+                    {
+                        "query_string": {
+                            "query": qs,
+                            "fields": ["region^5"],
+                            "default_operator": "AND"
+                        }
+                    },
+                    {
+                        "query_string": {
+                            "query": qs,
+                            "fields": ["appellation^4"],
+                            "default_operator": "AND"
+                        }
+                    }
                 ]
             }
         }

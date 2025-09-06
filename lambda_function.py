@@ -141,6 +141,7 @@ import os
 import json
 import re
 import random
+import math
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExceptionHandler, AbstractRequestInterceptor
 from ask_sdk_core.utils import is_request_type, is_intent_name
@@ -706,31 +707,66 @@ class WineSearchIntentHandler(AbstractRequestHandler):
             
             # Search for wines using the wine service
             wines = wine_service.search_wines(search_term)
+            # Prepare an ordered pool by relevance and apply session-based rotation BEFORE selection
+            if wines:
+                def _rel(w: dict) -> float:
+                    try:
+                        return float(w.get('_relevance', 0.0) or 0.0)
+                    except Exception:
+                        return 0.0
+                ordered_pool = sorted(wines, key=_rel, reverse=True)
+                # Rotate the ordered pool across repeated identical queries in-session
+                try:
+                    attrs = handler_input.attributes_manager.session_attributes
+                    prev_q = attrs.get('last_query')
+                    if prev_q == search_term:
+                        offset = int(attrs.get('rot_offset', 0))
+                        top_k = min(len(ordered_pool), 30)
+                        if top_k > 0:
+                            offset = offset % top_k
+                            head = ordered_pool[:top_k]
+                            tail = ordered_pool[top_k:]
+                            ordered_pool = head[offset:] + head[:offset] + tail
+                            attrs['rot_offset'] = offset + 7
+                    else:
+                        attrs['last_query'] = search_term
+                        attrs['rot_offset'] = 7
+                except Exception:
+                    pass
+            
             # If pairing context present, re-rank results to surface better matches
             if wines and (food or meal):
-                scored = [(w, _score_wine_for_pairing(w, food, meal)) for w in wines]
+                scored = [(w, _score_wine_for_pairing(w, food, meal)) for w in ordered_pool]
                 scores = [s for _, s in scored]
                 if any(s > 0 for s in scores):
                     wines = [w for w, _ in sorted(scored, key=lambda t: t[1], reverse=True)]
                 else:
                     # All ties (e.g., score 0): randomly sample from the highest relevance tier
                     # 1) Determine highest _relevance among results
-                    rels = [float(w.get('_relevance', 0.0) or 0.0) for w in wines]
+                    rels = [float(w.get('_relevance', 0.0) or 0.0) for w in ordered_pool]
                     max_rel = max(rels) if rels else 0.0
-                    tol = 1e-6
-                    top_group = [w for w in wines if abs(float(w.get('_relevance', 0.0) or 0.0) - max_rel) < tol]
-                    pick = min(5, len(top_group) if top_group else len(wines))
-                    chosen = random.sample(top_group if top_group else wines, k=pick)
+                    # Dynamic tolerance: consider close scores as ties (broader for more variety)
+                    tol = max(1e-6, 0.08 * max_rel) if max_rel else 1e-6
+                    top_group = [w for w in ordered_pool if abs(float(w.get('_relevance', 0.0) or 0.0) - max_rel) <= tol]
+                    pick = min(5, len(top_group) if top_group else len(ordered_pool))
+                    chosen = random.sample(top_group if top_group else ordered_pool, k=pick)
                     # 2) If fewer than 5 chosen, top-up from next relevance tiers in order
                     if pick < 5:
                         # Sort remaining by _relevance desc, keep those not already chosen
-                        remaining = [w for w in wines if w not in chosen]
+                        remaining = [w for w in ordered_pool if w not in chosen]
                         remaining.sort(key=lambda x: float(x.get('_relevance', 0.0) or 0.0), reverse=True)
                         for w in remaining:
                             if len(chosen) >= 5:
                                 break
                             chosen.append(w)
                     wines = chosen
+            elif wines:
+                # No pairing context: use weighted sampling among a larger top-N for more variety
+                wines = _weighted_sample_topN(ordered_pool, select_k=5, top_n=20, temperature=0.9)
+            
+            # Always cap to 5 for spoken/list presentation
+            if wines and len(wines) > 5:
+                wines = wines[:5]
             
             if not wines:
                 return (handler_input.response_builder
@@ -1182,6 +1218,57 @@ class RequestLogInterceptor(AbstractRequestInterceptor):
             logger_util.info('Incoming request', payload)
         except Exception as e:
             logger_util.error('RequestLogInterceptor failure', e)
+
+# Weighted sampling among the top-N by _relevance, without replacement
+def _weighted_sample_topN(wines: list[dict], select_k: int = 5, top_n: int = 12, temperature: float = 0.7) -> list[dict]:
+    try:
+        if not wines:
+            return []
+        # Take the top-N by relevance first
+        def rel(w: dict) -> float:
+            try:
+                return float(w.get('_relevance', 0.0) or 0.0)
+            except Exception:
+                return 0.0
+        ordered = sorted(wines, key=rel, reverse=True)
+        pool = ordered[: min(len(ordered), max(select_k, top_n))]
+        if len(pool) <= select_k:
+            return pool
+        # Compute softmax weights over scores/temperature
+        scores = [rel(w) for w in pool]
+        if all(s == 0.0 for s in scores):
+            # Fallback to uniform random sample
+            return random.sample(pool, k=select_k)
+        # Normalize scores to avoid large exponentials
+        max_s = max(scores)
+        scaled = [ (s - max_s) / max(1e-6, temperature) for s in scores ]
+        exps = [ math.exp(x) for x in scaled ]
+        total = sum(exps)
+        weights = [ e / total for e in exps ]
+        # Sample without replacement according to weights
+        chosen: list[dict] = []
+        items = pool[:]
+        wts = weights[:]
+        k = min(select_k, len(items))
+        for _ in range(k):
+            # roulette wheel
+            r = random.random()
+            acc = 0.0
+            idx = 0
+            for i, w in enumerate(wts):
+                acc += w
+                if r <= acc:
+                    idx = i
+                    break
+            chosen.append(items.pop(idx))
+            # remove weight and renormalize
+            wts.pop(idx)
+            t = sum(wts) or 1.0
+            wts = [ x / t for x in wts ]
+        return chosen
+    except Exception:
+        # Defensive: fallback to first-k
+        return wines[:select_k]
 
 # Varietal-to-signature cues (extendable)
 VARIETAL_HINTS = {

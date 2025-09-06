@@ -4,7 +4,11 @@ Handles environment variables and configuration constants
 """
 
 import os
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except Exception:
+    def load_dotenv(*_args, **_kwargs):  # type: ignore
+        return False
 
 # Load environment variables from .env file
 load_dotenv()
