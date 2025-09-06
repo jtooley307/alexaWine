@@ -86,7 +86,15 @@ def search_text(query: str, size: int = 5) -> List[Dict[str, Any]]:
     }
     res = client.search(index=OS_INDEX, body=body)
     hits = res.get('hits', {}).get('hits', [])
-    return [h.get('_source', {}) for h in hits]
+    out = []
+    for h in hits:
+        src = h.get('_source', {}) or {}
+        try:
+            src['_relevance'] = float(h.get('_score', 0.0))
+        except Exception:
+            src['_relevance'] = 0.0
+        out.append(src)
+    return out
 
 
 def _embed(text: str) -> List[float]:
@@ -313,7 +321,14 @@ def search_vector(query: str, k: int = 5, num_candidates: int = 100) -> List[Dic
     hits = res.get('hits', {}).get('hits', [])
 
     # If we over-fetched due to candidate_ids, trim to k
-    results = [h.get('_source', {}) for h in hits][:k]
+    results = []
+    for h in hits[:k]:
+        src = h.get('_source', {}) or {}
+        try:
+            src['_relevance'] = float(h.get('_score', 0.0))
+        except Exception:
+            src['_relevance'] = 0.0
+        results.append(src)
     return results
 
 
@@ -368,13 +383,18 @@ def search_hybrid(query: str, size: int = 5, k: int = 5) -> List[Dict[str, Any]]
     # Sort by combined score
     ordered = sorted(ranks.items(), key=lambda kv: kv[1], reverse=True)
     results: List[Dict[str, Any]] = []
-    for id_, _ in ordered[:size]:
-        results.append(sources[id_])
+    for id_, score in ordered[:size]:
+        src = sources[id_] or {}
+        src['_relevance'] = float(score)
+        results.append(src)
     # If insufficient, top up with unique text hits
     if len(results) < size:
         seen = set(ordered_i[0] for ordered_i in ordered)
         for id_, src, _ in text_hits:
             if id_ not in seen:
+                # Assign a small fallback relevance based on remaining order
+                if isinstance(src, dict):
+                    src['_relevance'] = src.get('_relevance', 0.0)
                 results.append(src)
                 if len(results) >= size:
                     break

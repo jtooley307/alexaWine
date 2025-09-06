@@ -146,6 +146,13 @@ class WineService:
         price = wine.get('price') if 'price' in wine else wine.get('Price')
         rating = wine.get('rating') if 'rating' in wine else wine.get('Rating')
         description = wine.get('description') or wine.get('Description') or 'No description available.'
+        # Winemaker tasting notes normalization
+        tasting_notes = (
+            wine.get('tasting_notes')
+            or wine.get('tastingNotes')
+            or (wine.get('raw_data', {}) or {}).get('tasting_notes')
+            or (wine.get('raw_data', {}) or {}).get('tastingNotes')
+        )
         pairings = wine.get('pairings') or wine.get('Pairings') or []
         source = wine.get('source', 'unknown')
 
@@ -158,6 +165,7 @@ class WineService:
             'price': price,
             'rating': rating,
             'description': description,
+            'tasting_notes': tasting_notes or description,
             'pairings': pairings,
             'source': source
         }
@@ -174,6 +182,14 @@ class WineService:
             formatted_wine['alcohol_content'] = alcohol_content
         if image_url is not None:
             formatted_wine['image_url'] = image_url
+
+        # Preserve relevance score if upstream search attached it (e.g., OpenSearch)
+        rel = wine.get('_relevance') or (raw_data.get('_relevance') if isinstance(raw_data, dict) else None)
+        if rel is not None:
+            try:
+                formatted_wine['_relevance'] = float(rel)
+            except Exception:
+                pass
 
         return formatted_wine
 

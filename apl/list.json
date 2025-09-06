@@ -1,0 +1,80 @@
+{
+  "type": "APL",
+  "version": "1.8",
+  "theme": "dark",
+  "settings": {},
+  "styles": {
+    "title": {
+      "values": [{ "color": "${theme.colors.on_primary}", "fontSize": 36, "fontWeight": "700" }]
+    },
+    "itemText": {
+      "values": [{ "color": "${theme.colors.text}", "fontSize": 20 }]
+    }
+  },
+  "layouts": {
+    "WineListItem": {
+      "parameters": ["item"],
+      "item": {
+        "type": "Container",
+        "padding": 12,
+        "items": [
+          {
+            "type": "Image",
+            "width": 120,
+            "height": 120,
+            "scale": "best-fit",
+            "align": "center",
+            "source": "${item.imageUrl}",
+            "backgroundColor": "${theme.colors.surface}",
+            "borderRadius": 8
+          },
+          {
+            "type": "Text",
+            "style": "itemText",
+            "text": "${item.name}",
+            "maxLines": 2,
+            "spacing": 8
+          },
+          {
+            "type": "Text",
+            "style": "itemText",
+            "color": "${theme.colors.header}",
+            "text": "${item.winery}",
+            "maxLines": 1
+          },
+          {
+            "type": "Text",
+            "style": "itemText",
+            "color": "${theme.colors.badge}",
+            "text": "${item.rating ? 'Rating: ' + item.rating : ''}",
+            "maxLines": 1
+          }
+        ]
+      }
+    }
+  },
+  "mainTemplate": {
+    "parameters": ["theme", "listData"],
+    "items": [
+      {
+        "type": "Container",
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "${theme.colors.bg_primary}",
+        "items": [
+          { "type": "Text", "style": "title", "text": "${listData.title}", "padding": 24 },
+          {
+            "type": "Sequence",
+            "scrollDirection": "vertical",
+            "data": "${listData.items}",
+            "height": "100%",
+            "width": "100%",
+            "items": [
+              { "type": "WineListItem", "item": "${data}" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

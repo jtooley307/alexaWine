@@ -81,6 +81,28 @@ class Validation:
             return {'is_valid': False, 'error': 'Wine name is too long'}
         
         return {'is_valid': True, 'sanitized': sanitized}
+
+def ssml_escape(text: str) -> str:
+    """Escape characters that are invalid in SSML content.
+    Replaces &, <, > with corresponding entities. Leaves quotes and apostrophes as-is.
+    Also collapses stray control characters.
+    """
+    if text is None:
+        return ""
+    try:
+        # First, ensure it's a string
+        s = str(text)
+        # Replace required XML entities for SSML
+        s = s.replace('&', '&amp;')
+        s = s.replace('<', '&lt;')
+        s = s.replace('>', '&gt;')
+        # Remove any non-printable control chars except common whitespace
+        s = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", s)
+        # Collapse excessive spaces
+        s = re.sub(r"\s+", " ", s).strip()
+        return s
+    except Exception:
+        return str(text) if text is not None else ""
     
     @staticmethod
     def validate_action(action: str) -> Dict[str, Any]:

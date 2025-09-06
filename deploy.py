@@ -11,24 +11,38 @@ import tempfile
 import shutil
 import json
 from pathlib import Path
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv  # type: ignore
+except Exception:
+    # Fallback if python-dotenv is not installed locally; no-op
+    def load_dotenv(*_args, **_kwargs):  # type: ignore
+        return False
 
 def create_deployment_package():
     """Create a deployment package for AWS Lambda"""
     print("Creating deployment package...")
     
+    # Load env early to control optional deps and file inclusion
+    load_dotenv()
+    use_opensearch = (os.getenv('USE_OPENSEARCH', 'false').lower() == 'true')
+    use_vector = (os.getenv('USE_VECTOR_SEARCH', 'false').lower() == 'true')
+
     # Files to include in the deployment package
     files_to_include = [
         'lambda_function.py',
         'config.py', 
         'utils.py',
+        'card_utils.py',
+        'apl_utils.py',
         'wine_service.py',
         'wine_api_service.py',
         'wine_dynamodb_service.py',
-        'opensearch_search.py',
         'wineDatabase.json',
         '.env'
     ]
+    # Include OpenSearch helper only if enabled
+    if use_opensearch:
+        files_to_include.append('opensearch_search.py')
     
     # Create temporary directory for package
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -47,6 +61,19 @@ def create_deployment_package():
                 print(f"✓ Added {file_name} ({src_path.absolute()})")
             else:
                 print(f"✗ Missing {file_name} - This may cause runtime errors!")
+
+        # Recursively include APL documents directory
+        apl_dir = Path('apl')
+        if apl_dir.exists() and apl_dir.is_dir():
+            print("\nIncluding APL documents (apl/**):")
+            for root, dirs, files in os.walk(apl_dir):
+                for file in files:
+                    src_path = Path(root) / file
+                    rel = src_path.relative_to(Path('.'))
+                    dest_path = package_dir / rel
+                    dest_path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src_path, dest_path)
+                    print(f"✓ Added {rel}")
         
         # Install minimal runtime dependencies to package directory (keep ZIP small)
         print("\nInstalling minimal runtime dependencies...")
@@ -55,11 +82,14 @@ def create_deployment_package():
             'ask-sdk-model==1.82.0',
             'python-dotenv==1.0.0',
             'requests==2.31.0',
-            # OpenSearch + SigV4 auth for production vector/BM25 search
-            'opensearch-py==2.5.0',
-            'requests-aws4auth==1.2.3'
             # Note: boto3/botocore provided by AWS Lambda runtime; do NOT vendor
         ]
+        # Only include OpenSearch client libs when explicitly enabled
+        if use_opensearch or use_vector:
+            minimal_packages += [
+                'opensearch-py==2.5.0',
+                'requests-aws4auth==1.2.3'
+            ]
         for pkg in minimal_packages:
             subprocess.run([
                 'pip', 'install', pkg,
@@ -141,12 +171,14 @@ def get_aws_account_id():
         print("Please make sure you have AWS credentials configured and have run 'aws configure'")
         raise
 
-def deploy_to_lambda(zip_path, function_name='alexa-wine-skill-python', region=None):
+def deploy_to_lambda(zip_path, function_name=None, region=None):
     """Deploy the package to AWS Lambda"""
     # Load .env so os.getenv picks up local config
     load_dotenv()
     # Resolve region from environment or default
     region = region or os.getenv('AWS_REGION', 'us-west-2')
+    # Resolve function name; allow override via env var
+    function_name = function_name or os.getenv('LAMBDA_FUNCTION_NAME') or 'alexa-wine-skill-python-dev-alexaSkill'
     print(f"\nDeploying to Lambda function: {function_name} (region: {region})")
     
     # Get AWS account ID
@@ -228,7 +260,9 @@ def deploy_to_lambda(zip_path, function_name='alexa-wine-skill-python', region=N
                 # Embeddings (Bedrock for prod)
                 'EMBED_PROVIDER', 'EMBED_DIM', 'BEDROCK_REGION', 'BEDROCK_EMBEDDING_MODEL_ID',
                 # Bedrock NLG
-                'USE_BEDROCK_NLG', 'BEDROCK_TEXT_MODEL_ID'
+                'USE_BEDROCK_NLG', 'BEDROCK_TEXT_MODEL_ID',
+                # Visual assets
+                'CARD_LOGO_URL'
             ]:
                 val = os.getenv(key)
                 if val is not None:

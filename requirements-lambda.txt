@@ -1,0 +1,5 @@
+ask-sdk-core==1.19.0
+ask-sdk-model==1.82.0
+python-dotenv==1.0.0
+requests==2.31.0
+# boto3 and botocore are provided by the Lambda runtime

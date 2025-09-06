@@ -59,6 +59,10 @@ class Config:
         'general_error': "I'm sorry, something went wrong. Please try again."
     }
     
+    # Visual assets
+    # Public HTTPS URL for a default card/logo image to use when a wine image is missing
+    CARD_LOGO_URL = os.getenv('CARD_LOGO_URL', '')
+    
     # Wine detail types
     DETAIL_TYPES = {
         'PRICE': 'price',
