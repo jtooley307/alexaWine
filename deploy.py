@@ -5,6 +5,7 @@ Creates a deployment package and uploads to AWS Lambda
 """
 
 import os
+import sys
 import zipfile
 import subprocess
 import tempfile
@@ -91,12 +92,20 @@ def create_deployment_package():
                 'requests-aws4auth==1.2.3'
             ]
         for pkg in minimal_packages:
-            subprocess.run([
-                'pip', 'install', pkg,
-                '--target', str(package_dir),
-                '--upgrade',
-                '--no-cache-dir'
-            ], check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            try:
+                subprocess.run([
+                    sys.executable, '-m', 'pip', 'install', pkg,
+                    '--target', str(package_dir),
+                    '--upgrade',
+                    '--no-cache-dir'
+                ], check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+            except subprocess.CalledProcessError as e:
+                print(f"\nERROR installing dependency: {pkg}")
+                if e.stdout:
+                    print(f"STDOUT:\n{e.stdout}")
+                if e.stderr:
+                    print(f"STDERR:\n{e.stderr}")
+                raise
         
         # Verify wineDatabase.json is in the package
         db_path = package_dir / 'wineDatabase.json'
@@ -119,11 +128,19 @@ def create_deployment_package():
         ]
         
         for pkg in additional_packages:
-            subprocess.run([
-                'pip', 'install', pkg,
-                '--target', str(package_dir),
-                '--upgrade'
-            ], check=True)
+            try:
+                subprocess.run([
+                    sys.executable, '-m', 'pip', 'install', pkg,
+                    '--target', str(package_dir),
+                    '--upgrade'
+                ], check=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+            except subprocess.CalledProcessError as e:
+                print(f"\nERROR installing dependency: {pkg}")
+                if e.stdout:
+                    print(f"STDOUT:\n{e.stdout}")
+                if e.stderr:
+                    print(f"STDERR:\n{e.stderr}")
+                raise
         
         # Create zip file
         zip_path = 'alexa-wine-skill-python.zip'
